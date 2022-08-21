@@ -1,32 +1,30 @@
 from __future__ import annotations
 
-import time, os, sys
-import pygame as pg
-from math import floor
-from time import sleep
 import gc
-
+import os
+import sys
 import threading
+import time
+from abc import ABC, abstractmethod
+from math import floor
 from threading import Thread
+from time import sleep
+from typing import Callable, Dict, List, Literal, Optional, Tuple
 
-from pygame import image, mixer, font
-from pygame.surface import Surface
+import pygame as pg
+from pygame import font, image, mixer
 from pygame.font import Font
 from pygame.locals import *
+from pygame.surface import Surface
 
-from typing import Callable, List, Optional, Tuple, Dict, Literal
-from abc import ABC, abstractmethod
-
-from conf import Conf, Colours
-from lib import Note, NoteData, panic, screen_res, SongData, fetch_song_data
+from conf import Colours, Conf
+from lib import Note, NoteData, SongData, fetch_song_data, panic, screen_res
 
 pg.init()
 
 mixer.pre_init(Conf.SOUND_BUFFER_SIZE)
 
-# Hold notes
 mixer.set_reserved(1)
-# Head of hold notes
 mixer.set_reserved(2)
 
 HoldChannel = mixer.Channel(1)
@@ -40,6 +38,7 @@ Clock = pg.time.Clock()
 
 SCREEN_WIDTH, SCREEN_HEIGHT = screen_res(pg.display.Info())
 Display = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), Conf.FLAGS, 16)
+pg.display.set_caption("PyBeats")
 
 SONG_DATA = fetch_song_data("ド屑")
 SONG_PATH = SONG_DATA.song_path
@@ -164,7 +163,6 @@ class Video:
         frame = pg.image.load(path)
         frame = pg.transform.scale(frame, (SCREEN_WIDTH, SCREEN_HEIGHT)).convert_alpha()
         frame.set_alpha(30)
-        # transparency = 30 frame.fill((255, 255, 255, transparency), special_flags=pygame.BLEND_RGBA_MULT)
         return frame
 
     def load_next(self, adder: int) -> None:
@@ -202,6 +200,10 @@ class Video:
             thread.join()
 
         self.load_curr += Conf.MAX_ALLOWED_THREADS
+
+    def unload(self) -> None:
+        self.frames = {}
+        self.load_curr = 1
 
 
 class GameObject(ABC):
@@ -255,10 +257,6 @@ class State(ABC):
     def draw(self) -> None:
         ...
 
-    # @abstractmethod
-    # def fadeout(self) -> None:
-    #     ...
-
 
 class Loading(State):
     def __init__(self) -> None:
@@ -278,20 +276,7 @@ class Loading(State):
         self.progress_text = f"{floor(self.progress)}%"
         self.progress_surface = self.font.render(self.progress_text, True, (255, 255, 255))
 
-        # self.fadeout_flag = False
-        #
-        # self.fade_overlay = Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        # self.fade_overlay.fill(Colours.Black)
-        # self.fade_alpha = 0
-
     def update(self) -> None:
-        # if self.fadeout_flag:
-        #     self.fade_alpha += 5
-        #     self.fade_overlay.set_alpha(self.fade_alpha)
-        #     if self.fade_alpha >= 255:
-        #         self.fadeout_flag = False
-        #         # self.ctx.setState(Menu())
-
         self.progress_rect.width = floor(self.loading_bar_rect.width * self.progress / 100) - 10
 
         self.progress_text = f"{floor(self.progress)}%"
@@ -310,24 +295,13 @@ class Loading(State):
             ),
         )
 
-        # if self.fadeout_flag:
-        #     Display.blit(self.fade_overlay, (0, 0))
-
     def load_task(self, func: Callable[..., Tuple[int, int]]) -> bool:
         done, total = func()
 
         self.progress = floor(done / total * 100)
 
-        # if self.fade_alpha == 255:
-        #     # Task is done
-        #     return True
-
         # Task needs to continue loading
         return done == total
-
-    # def fadeout(self) -> None:
-    #     self.fadeout_flag = True
-    #     # self.fade_alpha = 0
 
 
 class Menu(State):
@@ -400,11 +374,16 @@ class FadeOverlay:
     def fadein(self) -> None:
         self.fade_alpha -= 5
         self.fade_overlay.set_alpha(self.fade_alpha)
+        print("Fade in... Alpha =", self.fade_alpha)
+        if self.fade_alpha <= 0:
+            self.set_mode(None)
 
     def fadeout(self) -> None:
         self.fade_alpha += 5
         self.fade_overlay.set_alpha(self.fade_alpha)
         print("Fading out... Alpha =", self.fade_alpha)
+        # if self.fade_alpha >= 255:
+        #     self.set_mode(None)
 
     def render(self) -> None:
         Display.blit(self.fade_overlay, (0, 0))
@@ -458,8 +437,6 @@ def load_songs() -> Tuple[int, int]:
     return (len(Map1.frames), Map1.frame_count)
 
 
-# START_TIME = time.perf_counter()
-
 while True:
     for event in pg.event.get():
         if event.type == QUIT:
@@ -480,20 +457,17 @@ while True:
         if Fader.fade_alpha >= 255:
             Fader.set_mode(None)
             App.setState(Menu())
+            Fader.set_mode("in")
             print("Switched to menu")
 
-    # Proof of concept
-    # 明かした こんしけぷと… すごい！
+    # 概念実証
     if type(App._state) is Menu and memory_not_freed:
-        # END_TIME = time.perf_counter()
-        # sleep(3)
 
-        del Map1  # type: ignore
+        Map1.unload()
         gc.collect()
         print("FREED MEMORY")
 
         memory_not_freed = False
-        # print(END_TIME - START_TIME)
 
     App.update()
     App.draw()
