@@ -7,7 +7,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from math import floor
-from threading import Thread
+from threading import Thread, local
 from time import sleep
 from typing import Callable, Dict, List, Literal, Optional, Tuple
 
@@ -306,20 +306,71 @@ class Loading(State):
 
 class Menu(State):
     def __init__(self) -> None:
-        self.bg: Surface = pg.image.load("assets/menu.jpg")
+        self.bg: Surface = pg.image.load("assets/menu_tint.jpg")
         self.bg = pg.transform.scale(self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT)).convert_alpha()
-        self.bg.set_alpha(200)
+        self.bg.set_alpha(180)
 
         self.overlay = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.overlay.set_alpha(128)
         self.overlay.fill(Colours.Black)
 
+        self.title: Surface = pg.image.load("assets/Pybeats_text.jpg")
+
+        scale = SCREEN_WIDTH * 0.8 / self.title.get_width()
+
+        self.title = pg.transform.scale(
+            self.title, (self.title.get_width() * scale, self.title.get_height() * scale)
+        ).convert_alpha()
+
+        self.title_rect = self.title.get_rect(center=Display.get_rect().center)
+        self.title_rect.y = SCREEN_HEIGHT // 6
+
+        self.font = font.Font("Mylodon-Light.otf", 50)
+
+        self.play_text = self.font.render("    Play    ", True, (120, 120, 120))
+        self.play_rect = self.play_text.get_rect(center=Display.get_rect().center)
+        self.play_rect.y = SCREEN_HEIGHT // 6 * 3
+
+        self.options_text = self.font.render("  Options  ", True, (120, 120, 120))
+        self.options_rect = self.options_text.get_rect(center=Display.get_rect().center)
+        self.options_rect.y = SCREEN_HEIGHT // 6 * 4
+
+        self.hover_play = False
+        self.hover_options = False
+
     def update(self) -> None:
-        pass
+        cursor = pg.mouse.get_pos()
+
+        match cursor:
+            case (
+                x,
+                y,
+            ) if self.play_rect.left < x < self.play_rect.right and self.play_rect.top < y < self.play_rect.bottom:
+                self.play_text = self.font.render(">>>   Play   <<<", True, (255, 255, 255))
+                self.hover_play = True
+            case (
+                x,
+                y,
+            ) if self.options_rect.left < x < self.options_rect.right and self.options_rect.top < y < self.options_rect.bottom:
+                self.options_text = self.font.render(">>> Options <<<", True, (255, 255, 255))
+                self.hover_options = True
+            case _:
+                self.play_text = self.font.render("    Play    ", True, (150, 150, 150))
+                self.options_text = self.font.render("  Options  ", True, (150, 150, 150))
+                self.hover_play = False
+                self.hover_options = False
+
+        self.play_rect = self.play_text.get_rect(center=Display.get_rect().center)
+        self.play_rect.y = SCREEN_HEIGHT // 6 * 3
+        self.options_rect = self.options_text.get_rect(center=Display.get_rect().center)
+        self.options_rect.y = SCREEN_HEIGHT // 6 * 4
 
     def draw(self) -> None:
         Display.blit(self.bg, (0, 0))
         Display.blit(self.overlay, (0, 0))
+        Display.blit(self.title, self.title_rect)
+        Display.blit(self.play_text, self.play_rect)
+        Display.blit(self.options_text, self.options_rect)
 
 
 class SongSelect(State):
@@ -360,7 +411,7 @@ def check_keys() -> None:
 class FadeOverlay:
     """
     This is the code I wrote when I was frustrated; the quality is awful and I don't know what's really going on...
-    But hey, it works〜
+    But hey, it works
     """
 
     def __init__(self, mode: Optional[Literal["in", "out"]]) -> None:
@@ -382,8 +433,6 @@ class FadeOverlay:
         self.fade_alpha += 5
         self.fade_overlay.set_alpha(self.fade_alpha)
         print("Fading out... Alpha =", self.fade_alpha)
-        # if self.fade_alpha >= 255:
-        #     self.set_mode(None)
 
     def render(self) -> None:
         Display.blit(self.fade_overlay, (0, 0))
@@ -420,6 +469,8 @@ class FadeOverlay:
 App = Game(Loading())
 Map1 = Video(rpath="beatmaps/ド屑/frames/", image_name="dokuzu")
 
+# App.setState(Menu())
+
 # Proof of concept
 memory_not_freed = True
 
@@ -446,13 +497,18 @@ while True:
         #     Mixer.toggle_pause()
         if event.type == KEYDOWN:
             check_keys()
+        if event.type == MOUSEBUTTONDOWN:
+            if type(App._state) is Menu:
+                print(f"Play: {App._state.hover_play}")
+                print(f"Options: {App._state.hover_options}")
 
     # Song.update()
 
-    if type(App._state) is Loading and not (App._state.load_task(load_songs)):
-        # Debugging
-        print(time.time())
-    elif type(App._state) is Loading and (App._state.load_task(load_songs)):
+    # if type(App._state) is Loading and not (App._state.load_task(load_songs)):
+    #     # Debugging
+    #     print(time.time())
+
+    if type(App._state) is Loading and (App._state.load_task(load_songs)):
         Fader.set_mode("out")
         if Fader.fade_alpha >= 255:
             Fader.set_mode(None)
