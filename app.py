@@ -45,6 +45,8 @@ SONG_PATH = SONG_DATA.song_path
 SONG_NAME = SONG_DATA.name
 SONG_BPM = SONG_DATA.bpm_semiquaver
 
+MAPS = {1: "Dokuzu", 2: "SONG2"}
+
 
 class Sfx:
     # Tapping the empty lane
@@ -151,15 +153,11 @@ class Video:
     def __init__(self, rpath: str, image_name: str) -> None:
         self.frames_path = os.path.join(os.getcwd(), rpath)
         self.image_name = image_name
-        # Can't use a List[Surface] anymore because threads aren't executed in order
-        # self.frames: List[Surface] = []
 
+        # Dict chosen instead of a List because threads aren't executed in order
         self.frames: Dict[int, Surface] = {}
 
         self.frame_count = len(os.listdir(self.frames_path)) - 1
-
-        # self.curr: int = 1
-        # self.curr_frame: Surface = self.frames[self.curr]
 
         self.load_curr: int = 1
 
@@ -299,8 +297,8 @@ class Loading(State):
             ),
         )
 
-    def load_task(self, func: Callable[..., Tuple[int, int]]) -> bool:
-        done, total = func()
+    def load_task(self, func: Callable[..., Tuple[int, int]], *args) -> bool:
+        done, total = func(*args)
 
         self.progress = floor(done / total * 100)
 
@@ -506,7 +504,7 @@ class FadeOverlay:
 App = Game(Loading())
 Map1 = Video(rpath="beatmaps/ド屑/frames/", image_name="dokuzu")
 
-App.setState(Menu())
+# App.setState(Menu())
 
 # Proof of concept
 memory_not_freed = True
@@ -514,15 +512,20 @@ memory_not_freed = True
 Fader = FadeOverlay(None)
 
 
-def load_songs() -> Tuple[int, int]:
-    Map1.load_chunk_buffer()
+def load_song_mv(map: Video) -> Tuple[int, int]:
+    map.load_chunk_buffer()
 
-    if len(Map1.frames) == Map1.frame_count:
+    if len(map.frames) == map.frame_count:
         print("DONE LOADING")
         # App._state.fadeout()
 
     ## NOTE: This might be redundant lmao
-    return (len(Map1.frames), Map1.frame_count)
+    return (len(map.frames), map.frame_count)
+
+
+def load_cache() -> Tuple[int, int]:
+
+    return (0, 0)
 
 
 while True:
@@ -550,7 +553,8 @@ while True:
     #     # Debugging
     #     print(time.time())
 
-    if type(App._state) is Loading and (App._state.load_task(load_songs)):
+    # Example code of loading a song mv before playing the map
+    if type(App._state) is Loading and (App._state.load_task(load_song_mv, Map1)):
         Fader.set_mode("out")
         if Fader.fade_alpha >= 255:
             Fader.set_mode(None)
@@ -558,14 +562,14 @@ while True:
             Fader.set_mode("in")
             print("Switched to menu")
 
-    # 概念実証
-    if type(App._state) is Menu and memory_not_freed:
-
-        Map1.unload()
-        gc.collect()
-        print("FREED MEMORY")
-
-        memory_not_freed = False
+    # # 概念実証
+    # if type(App._state) is Menu and memory_not_freed:
+    #
+    #     Map1.unload()
+    #     gc.collect()
+    #     print("FREED MEMORY")
+    #
+    #     memory_not_freed = False
 
     App.update()
     App.draw()
