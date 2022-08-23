@@ -372,18 +372,13 @@ class Menu(State):
                     self.hover_play = True
                     self.hover_options = False
 
-                    # if not self.prev_hovering and self.prev_hovering != self.hovering:
-                    #     pg.mixer.find_channel().play(Sfx.tap_lane_trunc)
-
                 case (
                     x,
                     y,
                 ) if self.options_rect.left < x < self.options_rect.right and self.options_rect.top < y < self.options_rect.bottom:
                     self.options_text = self.font.render(">>> Options <<<", True, (255, 255, 255))
                     self.hover_options = True
-
-                    # if not self.prev_hovering and self.prev_hovering != self.hovering:
-                    #     pg.mixer.find_channel().play(Sfx.tap_lane_trunc)
+                    self.hover_play = False
                 case _:
                     self.play_text = self.font.render("    Play    ", True, (150, 150, 150))
                     self.options_text = self.font.render("  Options  ", True, (150, 150, 150))
