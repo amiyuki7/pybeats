@@ -49,6 +49,7 @@ SONG_BPM = SONG_DATA.bpm_semiquaver
 class Sfx:
     # Tapping the empty lane
     tap_lane = mixer.Sound("audio/sfx/tap_lane.wav")
+    tap_lane_trunc = mixer.Sound("audio/sfx/tap_lane_trunc.wav")
     # Tap note
     tap_perfect = mixer.Sound("audio/sfx/tap.wav")
     tap_crit = mixer.Sound("audio/sfx/tap_crit.wav")
@@ -59,6 +60,9 @@ class Sfx:
     # Flair note
     flair = mixer.Sound("audio/sfx/flair.wav")
     flair_crit = mixer.Sound("audio/sfx/flair_crit.wav")
+
+    play_title = mixer.Sound("audio/sfx/play_title.wav")
+    play_game = mixer.Sound("audio/sfx/play_game.wav")
 
 
 class MixerWrapper:
@@ -338,32 +342,70 @@ class Menu(State):
         self.hover_play = False
         self.hover_options = False
 
+        self.prev_hovering = False
+        self.hovering = False
+
+        self.switchf = False
+        self.shift_dist = SCREEN_HEIGHT // 500
+        self.fade_speed = 8
+
     def update(self) -> None:
-        cursor = pg.mouse.get_pos()
+        if self.switchf:
+            self.title_rect.y -= self.shift_dist
+            self.play_rect.y -= self.shift_dist
+            self.options_rect.y -= self.shift_dist
 
-        match cursor:
-            case (
-                x,
-                y,
-            ) if self.play_rect.left < x < self.play_rect.right and self.play_rect.top < y < self.play_rect.bottom:
-                self.play_text = self.font.render(">>>   Play   <<<", True, (255, 255, 255))
-                self.hover_play = True
-            case (
-                x,
-                y,
-            ) if self.options_rect.left < x < self.options_rect.right and self.options_rect.top < y < self.options_rect.bottom:
-                self.options_text = self.font.render(">>> Options <<<", True, (255, 255, 255))
-                self.hover_options = True
-            case _:
-                self.play_text = self.font.render("    Play    ", True, (150, 150, 150))
-                self.options_text = self.font.render("  Options  ", True, (150, 150, 150))
-                self.hover_play = False
-                self.hover_options = False
+            self.title.set_alpha(self.title.get_alpha() - self.fade_speed)  # type: ignore
+            self.play_text.set_alpha(self.play_text.get_alpha() - self.fade_speed)  # type: ignore
+            self.options_text.set_alpha(
+                self.play_text.get_alpha() - self.fade_speed  # type: ignore
+            )
+        else:
+            cursor = pg.mouse.get_pos()
 
-        self.play_rect = self.play_text.get_rect(center=Display.get_rect().center)
-        self.play_rect.y = SCREEN_HEIGHT // 6 * 3
-        self.options_rect = self.options_text.get_rect(center=Display.get_rect().center)
-        self.options_rect.y = SCREEN_HEIGHT // 6 * 4
+            match cursor:
+                case (
+                    x,
+                    y,
+                ) if self.play_rect.left < x < self.play_rect.right and self.play_rect.top < y < self.play_rect.bottom:
+                    self.play_text = self.font.render(">>>   Play   <<<", True, (255, 255, 255))
+                    self.hover_play = True
+                    self.hover_options = False
+
+                    # if not self.prev_hovering and self.prev_hovering != self.hovering:
+                    #     pg.mixer.find_channel().play(Sfx.tap_lane_trunc)
+
+                case (
+                    x,
+                    y,
+                ) if self.options_rect.left < x < self.options_rect.right and self.options_rect.top < y < self.options_rect.bottom:
+                    self.options_text = self.font.render(">>> Options <<<", True, (255, 255, 255))
+                    self.hover_options = True
+
+                    # if not self.prev_hovering and self.prev_hovering != self.hovering:
+                    #     pg.mixer.find_channel().play(Sfx.tap_lane_trunc)
+                case _:
+                    self.play_text = self.font.render("    Play    ", True, (150, 150, 150))
+                    self.options_text = self.font.render("  Options  ", True, (150, 150, 150))
+                    self.hover_play = False
+                    self.hover_options = False
+
+            self.play_rect = self.play_text.get_rect(center=Display.get_rect().center)
+            self.play_rect.y = SCREEN_HEIGHT // 6 * 3
+            self.options_rect = self.options_text.get_rect(center=Display.get_rect().center)
+            self.options_rect.y = SCREEN_HEIGHT // 6 * 4
+
+            temp = self.hovering
+            self.hovering = self.hover_play or self.hover_options
+            self.prev_hovering = temp
+
+            if not self.prev_hovering and self.prev_hovering != self.hovering:
+                pg.mixer.find_channel().play(Sfx.tap_lane_trunc)
+
+    def switch(self) -> None:
+        self.switchf = True
+        self.hover_play = False
+        pg.mixer.find_channel().play(Sfx.play_title)
 
     def draw(self) -> None:
         Display.blit(self.bg, (0, 0))
@@ -469,7 +511,7 @@ class FadeOverlay:
 App = Game(Loading())
 Map1 = Video(rpath="beatmaps/ド屑/frames/", image_name="dokuzu")
 
-# App.setState(Menu())
+App.setState(Menu())
 
 # Proof of concept
 memory_not_freed = True
@@ -499,8 +541,13 @@ while True:
             check_keys()
         if event.type == MOUSEBUTTONDOWN:
             if type(App._state) is Menu:
-                print(f"Play: {App._state.hover_play}")
-                print(f"Options: {App._state.hover_options}")
+                if App._state.hover_options:
+                    print("Options coming soon!")
+                if App._state.hover_play:
+                    print("PLAY")
+                    App._state.switch()
+                # print(f"Play: {App._state.hover_play}")
+                # print(f"Options: {App._state.hover_options}")
 
     # Song.update()
 
