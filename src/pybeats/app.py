@@ -530,6 +530,13 @@ class FadeOverlay:
         self.fade_alpha += 5
         self.fade_overlay.set_alpha(self.fade_alpha)
 
+    def fade_to_state(self, state: Type[State]) -> None:
+        self.set_mode("out")
+        if self.fade_alpha >= 255:
+            self.set_mode(None)
+            self.ctx.setState(state)
+            self.set_mode("in")
+
     def render(self) -> None:
         Display.blit(self.fade_overlay, (0, 0))
 
@@ -666,20 +673,11 @@ class App:
                         self.mixer.play_sfx(Sfx.switch_button)
 
     def manage_states(self) -> None:
-        # TODO: Refactor fader code duplication
         if type(self._state) is Loading and self._state.load_task(self.load_cache):
-            self.fader.set_mode("out")
-            if self.fader.fade_alpha >= 255:
-                self.fader.set_mode(None)
-                self.setState(Menu)
-                self.fader.set_mode("in")
+            self.fader.fade_to_state(Menu)
 
         if type(self._state) is Menu and self._state.title.get_alpha() == 0:
-            self.fader.set_mode("out")
-            if self.fader.fade_alpha >= 255:
-                self.fader.set_mode(None)
-                self.setState(SongSelect)
-                self.fader.set_mode("in")
+            self.fader.fade_to_state(SongSelect)
 
     def run(self) -> None:
         while 1:
