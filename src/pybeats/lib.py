@@ -32,9 +32,7 @@ def screen_res(meta) -> tuple[int, int]:
     try:
         assert target_res
     except AssertionError:
-        raise AssertionError(
-            panic("Screen size is too small! Minimum supported resolution is 1280 x 720")
-        )
+        raise AssertionError(panic("Screen size is too small! Minimum supported resolution is 1280 x 720"))
 
     return target_res
 
