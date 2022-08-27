@@ -1,11 +1,10 @@
-# from pygame.display import _VidInfo
+from __future__ import annotations
 
 import colorama
-from conf import Conf
+from .conf import Conf
 import toml
 from typing import Any, Dict, List
 from collections import OrderedDict
-from enum import Enum, auto
 
 
 def panic(content: str) -> str:
@@ -40,48 +39,16 @@ def screen_res(meta) -> tuple[int, int]:
     return target_res
 
 
-# class NoteType(Enum):
-#     Tap = auto()
-#     TapCrit = auto()
-#     Flair = auto()
-#     FlairCrit = auto()
-#     Hold = auto()
-#     HoldRelease = auto()
-
-
 class Note:
     __slots__ = ("lane", "width", "type", "length")
 
     def __init__(self, raw: Dict[str, Any]) -> None:
         self.lane: int = raw["l"]
         self.width: int = raw["w"]
-        # self.type: NoteType = self.parse_type(raw["t"])
         self.type: str = raw["t"]
 
         self.length: int = raw.get("ln") or 1
 
-    # def parse_type(self, raw) -> NoteType:
-    #     match raw:
-    #         case "t":
-    #             return NoteType.Tap
-    #         case "tc":
-    #             return NoteType.TapCrit
-    #         case "f":
-    #             return NoteType.Flair
-    #         case "fc":
-    #             return NoteType.FlairCrit
-    #         case "h":
-    #             return NoteType.Hold
-    #         case "hr":
-    #             return NoteType.HoldRelease
-    #         case _:
-    #             """
-    #             This panic will only occur when there's a value in the `t` field of a note in a
-    #             beatmap's `meta.toml` that doesn't correspond with: 't'|'tc'|'f'|'fc'|'h'|'hr'
-    #             """
-    #             raise Exception(panic("Bad beatmap config: Unknown NoteType"))
-
-    # Debugging only
     @property
     def __dict__(self) -> Dict[str, Any]:
         return {s: getattr(self, s) for s in self.__slots__ if hasattr(self, s)}
@@ -147,9 +114,8 @@ class SongData:
         self.note_data: NoteData = NoteData(notes)
 
 
-## TODO: Add return signature
 def fetch_song_data(song: str) -> SongData:
-    meta = toml.load(f"beatmaps/{song}/meta.toml")
+    meta = toml.load(f"{Conf.ROOT_DIR}/beatmaps/{song}/meta.toml")
     return SongData(meta)
 
 
