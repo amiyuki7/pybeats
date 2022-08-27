@@ -249,7 +249,8 @@ class Loading(State):
         self.progress_rect.x = self.loading_bar_rect.x + 5
         self.progress_rect.centery = self.loading_bar_rect.centery
 
-        self.font = font.SysFont("Monospace", 30)
+        font_size = SCREEN_HEIGHT // 18
+        self.font = font.SysFont("Monospace", font_size)
         self.progress_text = f"{floor(self.progress)}%"
         self.progress_surface = self.font.render(self.progress_text, True, (255, 255, 255))
 
@@ -264,9 +265,14 @@ class Loading(State):
         pg.draw.rect(Display, (121, 183, 172), self.loading_bar_rect, 5)
         pg.draw.rect(Display, (161, 223, 212), self.progress_rect)
 
+        # Scale is used for responsive UI
+        text_pos_scale = 14
         Display.blit(
             self.progress_surface,
-            (self.progress_rect.right - self.progress_surface.get_width() / 2, self.progress_rect.top - 50),
+            (
+                self.progress_rect.right - self.progress_surface.get_width() / 2,
+                self.progress_rect.top - SCREEN_HEIGHT / text_pos_scale,
+            ),
         )
 
     def load_task(self, func: Callable[..., Tuple[int, int]], *args) -> bool:
@@ -305,7 +311,8 @@ class Menu(State):
         self.title_rect = self.title.get_rect(center=Display.get_rect().center)
         self.title_rect.y = SCREEN_HEIGHT // 6
 
-        self.font = font.Font(f"{ROOT_DIR}/Mylodon-Light.otf", 50)
+        font_scale = 10
+        self.font = font.Font(f"{ROOT_DIR}/Mylodon-Light.otf", SCREEN_HEIGHT // font_scale)
 
         self.play_text = self.font.render("    Play    ", True, (120, 120, 120))
         self.play_rect = self.play_text.get_rect(center=Display.get_rect().center)
