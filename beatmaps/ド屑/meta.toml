@@ -5,6 +5,7 @@ prod_en = "Nakiso"
 song_path = "beatmaps/ド屑/ド屑.mp3"
 lite_song_path = "beatmaps/ド屑/ド屑LITE.mp3"
 lite_img = "beatmaps/ド屑/images/lite.jpg"
+questionable = true
 mature = true
 bpm_crotchet = 115
 bpm_semiquaver = 460

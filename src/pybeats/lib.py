@@ -71,6 +71,7 @@ class SongData:
         self.song_path: str = o["song_path"]
         self.lite_song_path: str = o["lite_song_path"]
         self.lite_img: str = o["lite_img"]
+        self.questionable: bool = o["questionable"]
         self.mature: bool = o["mature"]
         self.bpm_crotchet: int = o["bpm_crotchet"]
         self.bpm_semiquaver: int = o["bpm_semiquaver"]
