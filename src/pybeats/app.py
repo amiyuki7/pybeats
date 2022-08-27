@@ -1,22 +1,19 @@
 from __future__ import annotations
-from math import floor
 
 import os
 import sys
-import time
+from abc import ABC, abstractmethod
+from math import floor
+from threading import Thread
+from typing import Callable, Dict, List, Literal, Optional, Tuple, Type
 
 import pygame as pg
-from pygame import mixer, font
+from pygame import font, mixer
 from pygame.locals import *
-
 from pygame.surface import Surface
-from threading import Thread
-
-from typing import Callable, Literal, Optional, Dict, List, Tuple, Type
-from abc import ABC, abstractmethod
 
 from .conf import Colours, Conf
-from .lib import NoteData, SongData, screen_res, fetch_song_data, panic
+from .lib import NoteData, SongData, fetch_song_data, panic, screen_res
 
 pg.init()
 
@@ -33,6 +30,8 @@ SCREEN_WIDTH, SCREEN_HEIGHT = screen_res(pg.display.Info())
 
 Display = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), Conf.FLAGS, 16)
 pg.display.set_caption("PyBeats")
+
+pg.mouse.set_visible(False)
 
 
 class Sfx:
@@ -53,6 +52,9 @@ class Sfx:
     # Major buttons
     play_title = mixer.Sound(f"{SFX_DIR}/play_title.wav")
     play_game = mixer.Sound(f"{SFX_DIR}/play_game.wav")
+
+    # Song select screen R/L buttons
+    switch_button = mixer.Sound(f"{SFX_DIR}/switch_button.wav")
 
 
 class MixerWrapper:
@@ -202,7 +204,6 @@ class Video:
 
 class State(ABC):
     _ctx: App
-    # nodes: List[GameObject] = []
 
     def __init__(self, ctx: App) -> None:
         self.ctx = ctx
@@ -334,13 +335,6 @@ class Menu(State):
 
     def update(self) -> None:
         if self.switchf:
-            # Fade effect complete
-            # if self.title.get_alpha() == 0:
-            #     # Debug
-            #     print("STOP!")
-            #     time.sleep(0.5)
-            #     self.ctx.setState(SongSelect)
-
             self.title_rect.y -= self.shift_dist
             self.play_rect.y -= self.shift_dist
             self.options_rect.y -= self.shift_dist
@@ -411,11 +405,6 @@ class SongSelect(State):
 
         self.target_song: int = 1
 
-        # Solid blue border
-        # self.frame: Surface = self.ctx.image_cache["assets/border.jpg"]
-
-        # Gradient border
-        # self.frame: Surface = self.ctx.image_cache["assets/frame_19201080.jpg"]
         self.frame: Surface = self.ctx.image_cache["assets/frame90.jpg"]
 
         scale = SCREEN_WIDTH * 0.6 / self.frame.get_width()
@@ -423,9 +412,9 @@ class SongSelect(State):
             self.frame, (self.frame.get_width() * scale, self.frame.get_height() * scale)
         ).convert_alpha()
         self.frame_rect = self.frame.get_rect(center=Display.get_rect().center)
+        self.frame_rect.y = SCREEN_HEIGHT // 7
 
         self.frame.set_alpha(255)
-        # self.frame_rect.y = SCREEN_HEIGHT // 8
 
         self.lite_img = self.ctx.image_cache["beatmaps/ド屑/images/lite.jpg"]
 
@@ -446,8 +435,9 @@ class SongSelect(State):
             flip_x=False,
             flip_y=True,
         ).convert_alpha()
-        self.rmap_button_rect = self.rmap_button.get_rect(center=Display.get_rect().center)
+        self.rmap_button_rect = self.rmap_button.get_rect()
         self.rmap_button_rect.x = SCREEN_WIDTH // 10 * 9 - self.rmap_button_rect.width
+        self.rmap_button_rect.centery = self.frame_rect.centery
 
         self.lmap_button = self.ctx.image_cache["assets/switch_button_1_crop.jpg"]
 
@@ -458,11 +448,41 @@ class SongSelect(State):
             flip_x=True,
             flip_y=True,
         ).convert_alpha()
-        self.lmap_button_rect = self.lmap_button.get_rect(center=Display.get_rect().center)
+        self.lmap_button_rect = self.lmap_button.get_rect()
         self.lmap_button_rect.x = SCREEN_WIDTH // 10
+        self.lmap_button_rect.centery = self.frame_rect.centery
+
+        self.hover_right = False
+        self.hover_left = False
 
     def update(self) -> None:
-        return super().update()
+        cursor = pg.mouse.get_pos()
+
+        match cursor:
+            # Detecting the opacity of the Surface; the Surface is a rectangle but only part of that rectangle is the actual button
+            case (
+                x,
+                y,
+            ) if self.rmap_button_rect.left < x < self.rmap_button_rect.right and self.rmap_button_rect.top < y < self.rmap_button_rect.bottom and (
+                px_alpha := self.rmap_button.get_at([x - self.rmap_button_rect.x, y - self.rmap_button_rect.y])[3]
+            ):
+                if px_alpha > 0:
+                    self.rmap_button.set_alpha(100)
+                    self.hover_right = True
+            case (
+                x,
+                y,
+            ) if self.lmap_button_rect.left < x < self.lmap_button_rect.right and self.lmap_button_rect.top < y < self.lmap_button_rect.bottom and (
+                px_alpha := self.lmap_button.get_at([x - self.lmap_button_rect.x, y - self.lmap_button_rect.y])[3]
+            ):
+                if px_alpha > 0:
+                    self.lmap_button.set_alpha(100)
+                    self.hover_left = True
+            case _:
+                self.rmap_button.set_alpha(255)
+                self.lmap_button.set_alpha(255)
+                self.hover_right = False
+                self.hover_left = False
 
     def draw(self) -> None:
         Display.blit(self.bg, (0, 0))
@@ -570,7 +590,6 @@ class App:
         self.Clock = pg.time.Clock()
 
         self.setState(init_state)
-        # self.objects: List[GameObject] = []
         self.mixer: MixerWrapper = MixerWrapper()
 
         self.fader = FadeOverlay(ctx=self, mode=None)
@@ -578,6 +597,13 @@ class App:
         self.maps = [
             Video(ctx=self, rpath=f"{ROOT_DIR}/beatmaps/ド屑/frames/", image_name="dokuzu"),
         ]
+
+        self.cursor = pg.image.load(f"{ROOT_DIR}/assets/cursor.jpg").convert_alpha()
+        cursor_scale = self.cursor.get_width() / 40
+        self.cursor = pg.transform.scale(
+            self.cursor, (self.cursor.get_width() / cursor_scale, self.cursor.get_height() / cursor_scale)
+        )
+        self.cursor.set_alpha(200)
 
     def setState(self, state: Type[State]) -> None:
         self._state = state(self)
@@ -616,8 +642,7 @@ class App:
         pressed_keys = pg.key.get_pressed()
 
         if pressed_keys[K_SPACE]:
-            # Debug
-            print("SPACE")
+            pass
 
     def check_events(self) -> None:
         for event in pg.event.get():
@@ -635,6 +660,10 @@ class App:
                         # Debug
                         print("PLAY")
                         self._state.switch()
+
+                if type(self._state) is SongSelect:
+                    if self._state.hover_right or self._state.hover_left:
+                        self.mixer.play_sfx(Sfx.switch_button)
 
     def manage_states(self) -> None:
         # TODO: Refactor fader code duplication
@@ -659,6 +688,9 @@ class App:
             self.update()
             self.draw()
             self.fader.update()
+
+            self.cursor_rect = self.cursor.get_rect(center=pg.mouse.get_pos())
+            Display.blit(self.cursor, self.cursor_rect)
 
             pg.display.update()
             self.Clock.tick(Conf.TARGET_FPS)
