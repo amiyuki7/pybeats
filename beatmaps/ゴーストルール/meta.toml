@@ -1,0 +1,34 @@
+name = "ゴーストルール"
+name_en = "Ghost Rule"
+prod = "DECO*27"
+prod_en = "DECO*27"
+song_path = "beatmaps/ゴーストルール/ゴーストルール.mp3"
+lite_song_path = "beatmaps/ゴーストルール/ゴーストルールLITE.mp3"
+lite_img = "beatmaps/ゴーストルール/images/lite.jpg"
+questionable = true
+bpm_crotchet = 105
+bpm_semiquaver = 420
+bpm_semihemiquaver = 840
+
+[vocals]
+vocaloid = "初音ミク"
+vocaloid_en = "Hatsune Miku"
+vocaloid_avatar = "beatmaps/ド屑/images/vocaloid_avatar.jpg"
+cover = ""
+cover_en = ""
+cover_avatar = ""
+
+[mv]
+available = false
+frames_path = "beatmaps/ゴーストルール/frames"
+
+[difficulty]
+easy = 1
+normal = 1
+hard = 1
+expert = 1
+master = 1
+
+# Normal mode
+[notes]
+1=[{l=1, w=1, t='t'}]
