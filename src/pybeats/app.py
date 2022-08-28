@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from abc import ABC, abstractmethod
 from math import floor
 from threading import Thread
@@ -395,6 +396,12 @@ class SongSelect(State):
     def __init__(self, ctx: App) -> None:
         super().__init__(ctx)
 
+        # 0 => ド屑
+        # 1 => ゴーストルール
+        # などなど
+        self.song_idx = 0
+        self.song_ref = self.ctx.song_cache[self.ctx.song_names[self.song_idx]]
+
         self.bg: Surface = self.ctx.image_cache["assets/menu_tint.jpg"]
         self.bg = pg.transform.scale(self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT)).convert_alpha()
         self.bg.set_alpha(180)
@@ -416,13 +423,8 @@ class SongSelect(State):
 
         self.frame.set_alpha(255)
 
-        self.lite_img = self.ctx.image_cache["beatmaps/ド屑/images/lite.jpg"]
-
-        self.lite_img = pg.transform.scale(
-            self.lite_img, (self.lite_img.get_width() * scale, self.lite_img.get_height() * scale)
-        ).convert_alpha()
-
-        self.lite_img.set_alpha(250)
+        self.lite_img = self.load_lite_img()
+        self.prev_img: Optional[Surface] = None
 
         self.rmap_button = self.ctx.image_cache["assets/switch_button_1_crop.jpg"]
         scale = SCREEN_WIDTH * 0.05 / self.rmap_button.get_width()
@@ -455,44 +457,114 @@ class SongSelect(State):
         self.hover_right = False
         self.hover_left = False
 
+        self.switching = False
+        self.switching_left = False
+
+        self.prev_percent: int = 0
+
+    def load_lite_img(self) -> Surface:
+        scale = SCREEN_WIDTH * 0.6 / self.ctx.image_cache["assets/frame90.jpg"].get_width()
+        img = self.ctx.image_cache[self.song_ref.lite_img]
+
+        img = pg.transform.scale(img, (img.get_width() * scale, img.get_height() * scale)).convert_alpha()
+
+        img.set_alpha(250)
+        return img
+
+    def switch_map(self) -> None:
+        self.switching = True
+
+        # When the index reaches either end of the list, go to the other end
+        if self.hover_right:
+            self.song_idx += 1
+            if self.song_idx >= len(self.ctx.song_names):
+                self.song_idx = 0
+
+        elif self.hover_left:
+            self.song_idx -= 1
+            if self.song_idx < 0:
+                self.song_idx = len(self.ctx.song_names) - 1
+            self.switching_left = True
+
+        self.hover_right = False
+        self.hover_left = False
+
+        self.prev_img = self.lite_img
+        self.song_ref = self.ctx.song_cache[self.ctx.song_names[self.song_idx]]
+        self.lite_img = self.load_lite_img()
+
+        self.prev_percent = 100
+
     def update(self) -> None:
         cursor = pg.mouse.get_pos()
 
-        match cursor:
-            # Detecting the opacity of the Surface; the Surface is a rectangle but only part of that rectangle is the actual button
-            case (
-                x,
-                y,
-            ) if self.rmap_button_rect.left < x < self.rmap_button_rect.right and self.rmap_button_rect.top < y < self.rmap_button_rect.bottom and (
-                px_alpha := self.rmap_button.get_at([x - self.rmap_button_rect.x, y - self.rmap_button_rect.y])[3]
-            ):
-                if px_alpha > 0:
-                    self.rmap_button.set_alpha(100)
-                    self.hover_right = True
-            case (
-                x,
-                y,
-            ) if self.lmap_button_rect.left < x < self.lmap_button_rect.right and self.lmap_button_rect.top < y < self.lmap_button_rect.bottom and (
-                px_alpha := self.lmap_button.get_at([x - self.lmap_button_rect.x, y - self.lmap_button_rect.y])[3]
-            ):
-                if px_alpha > 0:
-                    self.lmap_button.set_alpha(100)
-                    self.hover_left = True
-            case _:
-                self.rmap_button.set_alpha(255)
-                self.lmap_button.set_alpha(255)
-                self.hover_right = False
-                self.hover_left = False
+        if self.switching:
+            if self.prev_percent <= 0:
+                self.switching = False
+                self.switching_left = False
+                self.prev_img = None
+                return
+
+            # Fast to slow wipe effect
+            if self.prev_percent > 40:
+                self.prev_percent -= 8
+            elif self.prev_percent > 25:
+                self.prev_percent -= 3
+            elif self.prev_percent > 0:
+                self.prev_percent -= 1
+
+            print(self.prev_percent)
+
+        else:
+            match cursor:
+                # Detecting the opacity of the Surface; the Surface is a rectangle but only part of that rectangle is the actual button
+                case (
+                    x,
+                    y,
+                ) if self.rmap_button_rect.left < x < self.rmap_button_rect.right and self.rmap_button_rect.top < y < self.rmap_button_rect.bottom and (
+                    px_alpha := self.rmap_button.get_at([x - self.rmap_button_rect.x, y - self.rmap_button_rect.y])[3]
+                ):
+                    if px_alpha > 0:
+                        self.rmap_button.set_alpha(100)
+                        self.hover_right = True
+                case (
+                    x,
+                    y,
+                ) if self.lmap_button_rect.left < x < self.lmap_button_rect.right and self.lmap_button_rect.top < y < self.lmap_button_rect.bottom and (
+                    px_alpha := self.lmap_button.get_at([x - self.lmap_button_rect.x, y - self.lmap_button_rect.y])[3]
+                ):
+                    if px_alpha > 0:
+                        self.lmap_button.set_alpha(100)
+                        self.hover_left = True
+                case _:
+                    self.rmap_button.set_alpha(255)
+                    self.lmap_button.set_alpha(255)
+                    self.hover_right = False
+                    self.hover_left = False
 
     def draw(self) -> None:
         Display.blit(self.bg, (0, 0))
         Display.blit(self.overlay, (0, 0))
-
-        # TODO: Fix this positioning
-        Display.blit(self.lite_img, (self.frame_rect.x, self.frame_rect.y))
-        Display.blit(self.frame, self.frame_rect)
         Display.blit(self.rmap_button, self.rmap_button_rect)
         Display.blit(self.lmap_button, self.lmap_button_rect)
+
+        if self.prev_img:
+            # Gradually draw the next song's lite_img over the old one
+            part_img = Surface.copy(self.lite_img)
+            pixels_removed_b = part_img.get_width() * self.prev_percent / 100
+
+            for w in range(floor(pixels_removed_b)):
+                for h in range(part_img.get_height()):
+                    part_img.set_at((self.switching_left and part_img.get_width() - w or w, h), (255, 255, 255, 0))
+
+            Display.blit(self.prev_img, self.frame_rect)
+            Display.blit(part_img, self.frame_rect)
+
+            Display.blit(self.frame, self.frame_rect)
+        else:
+            # Normal
+            Display.blit(self.lite_img, (self.frame_rect.x, self.frame_rect.y))
+            Display.blit(self.frame, self.frame_rect)
 
 
 class InGame(State):
@@ -575,7 +647,7 @@ class App:
     song_cache: Dict[str, SongData] = {}
     image_cache: Dict[str, Surface] = {}
 
-    song_names = ["ド屑"]
+    song_names = ["ド屑", "ゴーストルール"]
 
     image_paths = [
         "assets/menu_tint.jpg",
@@ -586,6 +658,8 @@ class App:
         "beatmaps/ド屑/images/cover_avatar.jpg",
         "beatmaps/ド屑/images/lite.jpg",
         "beatmaps/ド屑/images/vocaloid_avatar.jpg",
+        "beatmaps/ゴーストルール/images/lite.jpg",
+        "beatmaps/ゴーストルール/images/vocaloid_avatar.jpg",
     ]
 
     maps: List[Video]
@@ -671,6 +745,7 @@ class App:
                 if type(self._state) is SongSelect:
                     if self._state.hover_right or self._state.hover_left:
                         self.mixer.play_sfx(Sfx.switch_button)
+                        self._state.switch_map()
 
     def manage_states(self) -> None:
         if type(self._state) is Loading and self._state.load_task(self.load_cache):
