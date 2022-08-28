@@ -72,7 +72,6 @@ class SongData:
         self.lite_song_path: str = o["lite_song_path"]
         self.lite_img: str = o["lite_img"]
         self.questionable: bool = o["questionable"]
-        self.mature: bool = o["mature"]
         self.bpm_crotchet: int = o["bpm_crotchet"]
         self.bpm_semiquaver: int = o["bpm_semiquaver"]
         self.bpm_semihemiquaver: int = o["bpm_semihemiquaver"]
@@ -82,9 +81,9 @@ class SongData:
             vocaloid: str = __o["vocaloid"]
             vocaloid_en: str = __o["vocaloid_en"]
             vocaloid_avatar: str = __o["vocaloid_avatar"]
-            covers: List[str] = __o["covers"]
-            covers_en: List[str] = __o["covers_en"]
-            covers_avatar: List[str] = __o["covers_avatar"]
+            cover: str = __o["cover"]
+            cover_en: str = __o["cover_en"]
+            cover_avatar: str = __o["cover_avatar"]
 
         self.vocals = Vocals
 

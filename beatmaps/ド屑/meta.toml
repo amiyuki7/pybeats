@@ -1,12 +1,11 @@
 name = "ド屑"
-name_en = "Dokuzu"
+name_en = "DOKUZU"
 prod = "なきそ"
-prod_en = "Nakiso"
+prod_en = "NAKISO"
 song_path = "beatmaps/ド屑/ド屑.mp3"
 lite_song_path = "beatmaps/ド屑/ド屑LITE.mp3"
 lite_img = "beatmaps/ド屑/images/lite.jpg"
 questionable = true
-mature = true
 bpm_crotchet = 115
 bpm_semiquaver = 460
 bpm_semihemiquaver = 920
@@ -15,9 +14,9 @@ bpm_semihemiquaver = 920
 vocaloid = "歌愛ユキ"
 vocaloid_en = "Kaai Yuki"
 vocaloid_avatar = "beatmaps/ド屑/images/vocaloid_avatar.jpg"
-covers = ["町たちま"]
-covers_en = ["Machita Chima"]
-covers_avatar = ["beatmaps/ド屑/images/cover_avatar.jpg"]
+cover = "町たちま"
+cover_en = "Machita Chima"
+cover_avatar = "beatmaps/ド屑/images/cover_avatar.jpg"
 
 [mv]
 available = true
