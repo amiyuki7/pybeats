@@ -314,7 +314,7 @@ class Menu(State):
         self.title_rect.y = SCREEN_HEIGHT // 6
 
         font_scale = 10
-        self.font = font.Font(f"{ROOT_DIR}/Mylodon-Light.otf", SCREEN_HEIGHT // font_scale)
+        self.font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", SCREEN_HEIGHT // font_scale)
 
         self.play_text = self.font.render("    Play    ", True, (120, 120, 120))
         self.play_rect = self.play_text.get_rect(center=Display.get_rect().center)
@@ -410,8 +410,6 @@ class SongSelect(State):
         self.overlay.set_alpha(128)
         self.overlay.fill(Colours.Black)
 
-        self.target_song: int = 1
-
         self.frame: Surface = self.ctx.image_cache["assets/frame90.jpg"]
 
         scale = SCREEN_WIDTH * 0.6 / self.frame.get_width()
@@ -454,8 +452,25 @@ class SongSelect(State):
         self.lmap_button_rect.x = SCREEN_WIDTH // 10
         self.lmap_button_rect.centery = self.frame_rect.centery
 
+        self.info_button = self.ctx.image_cache["assets/info_icon.jpg"]
+        scale = SCREEN_WIDTH * 0.05 / self.info_button.get_width()
+        self.info_button = pg.transform.scale(
+            self.info_button, (self.info_button.get_width() * scale, self.info_button.get_height() * scale)
+        ).convert_alpha()
+        self.info_button_rect = self.info_button.get_rect(center=Display.get_rect().center)
+        self.info_button_rect.y = SCREEN_HEIGHT // 10 * 7
+        self.info_button_rect.x = self.frame_rect.x + self.info_button_rect.width // 5 * 4
+
+        font_scale = 20
+        self.font = font.Font(f"{ROOT_DIR}/fonts/KozGoPro-Bold.otf", SCREEN_HEIGHT // font_scale)
+        self.song_text = self.font.render(f"【{self.song_ref.prod}】{self.song_ref.name}", True, (255, 255, 255))
+        self.song_text.set_alpha(200)
+        self.song_text_rect = self.song_text.get_rect(center=Display.get_rect().center)
+        self.song_text_rect.centery = self.info_button_rect.centery
+
         self.hover_right = False
         self.hover_left = False
+        self.hover_info = True
 
         self.switching = False
         self.switching_left = False
@@ -477,11 +492,13 @@ class SongSelect(State):
         # When the index reaches either end of the list, go to the other end
         if self.hover_right:
             self.song_idx += 1
+            self.rmap_button.set_alpha(255)
             if self.song_idx >= len(self.ctx.song_names):
                 self.song_idx = 0
 
         elif self.hover_left:
             self.song_idx -= 1
+            self.lmap_button.set_alpha(255)
             if self.song_idx < 0:
                 self.song_idx = len(self.ctx.song_names) - 1
             self.switching_left = True
@@ -492,6 +509,11 @@ class SongSelect(State):
         self.prev_img = self.lite_img
         self.song_ref = self.ctx.song_cache[self.ctx.song_names[self.song_idx]]
         self.lite_img = self.load_lite_img()
+
+        self.song_text = self.font.render(f"【{self.song_ref.prod_en}】{self.song_ref.name_en}", True, (255, 255, 255))
+        self.song_text.set_alpha(200)
+        self.song_text_rect = self.song_text.get_rect(center=Display.get_rect().center)
+        self.song_text_rect.centery = self.info_button_rect.centery
 
         self.prev_percent = 100
 
@@ -513,40 +535,51 @@ class SongSelect(State):
             elif self.prev_percent > 0:
                 self.prev_percent -= 1
 
-            print(self.prev_percent)
-
         else:
             match cursor:
-                # Detecting the opacity of the Surface; the Surface is a rectangle but only part of that rectangle is the actual button
+                # Checks:
+                # 1. The cursor is within the Surface Rect
+                # 2. The cursor is not on a pixel of the Surface that has an alpha value of 0
                 case (
                     x,
                     y,
                 ) if self.rmap_button_rect.left < x < self.rmap_button_rect.right and self.rmap_button_rect.top < y < self.rmap_button_rect.bottom and (
-                    px_alpha := self.rmap_button.get_at([x - self.rmap_button_rect.x, y - self.rmap_button_rect.y])[3]
+                    self.rmap_button.get_at([x - self.rmap_button_rect.x, y - self.rmap_button_rect.y])[3] > 0
                 ):
-                    if px_alpha > 0:
-                        self.rmap_button.set_alpha(100)
-                        self.hover_right = True
+                    self.rmap_button.set_alpha(100)
+                    self.hover_right = True
                 case (
                     x,
                     y,
                 ) if self.lmap_button_rect.left < x < self.lmap_button_rect.right and self.lmap_button_rect.top < y < self.lmap_button_rect.bottom and (
-                    px_alpha := self.lmap_button.get_at([x - self.lmap_button_rect.x, y - self.lmap_button_rect.y])[3]
+                    self.lmap_button.get_at([x - self.lmap_button_rect.x, y - self.lmap_button_rect.y])[3] > 0
                 ):
-                    if px_alpha > 0:
-                        self.lmap_button.set_alpha(100)
-                        self.hover_left = True
+                    self.lmap_button.set_alpha(100)
+                    self.hover_left = True
+                case (
+                    x,
+                    y,
+                ) if self.info_button_rect.left < x < self.info_button_rect.right and self.info_button_rect.top < y < self.info_button_rect.bottom and (
+                    self.info_button.get_at([x - self.info_button_rect.x, y - self.info_button_rect.y])[3] > 0
+                ):
+                    self.info_button.set_alpha(100)
+                    self.hover_info = True
+
                 case _:
                     self.rmap_button.set_alpha(255)
                     self.lmap_button.set_alpha(255)
+                    self.info_button.set_alpha(255)
                     self.hover_right = False
                     self.hover_left = False
+                    self.hover_info = False
 
     def draw(self) -> None:
         Display.blit(self.bg, (0, 0))
         Display.blit(self.overlay, (0, 0))
         Display.blit(self.rmap_button, self.rmap_button_rect)
         Display.blit(self.lmap_button, self.lmap_button_rect)
+        Display.blit(self.info_button, self.info_button_rect)
+        Display.blit(self.song_text, self.song_text_rect)
 
         if self.prev_img:
             # Gradually draw the next song's lite_img over the old one
@@ -655,6 +688,7 @@ class App:
         "assets/ingame.jpg",
         "assets/frame90.jpg",
         "assets/switch_button_1_crop.jpg",
+        "assets/info_icon.jpg",
         "beatmaps/ド屑/images/cover_avatar.jpg",
         "beatmaps/ド屑/images/lite.jpg",
         "beatmaps/ド屑/images/vocaloid_avatar.jpg",
