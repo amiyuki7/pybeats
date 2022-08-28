@@ -20,7 +20,7 @@ def screen_res(meta) -> tuple[int, int]:
     h, w = meta.current_h, meta.current_w
     target_res = None
 
-    # Proof of concept... comment the below line if you want your RAM stolen
+    # Proof of concept; comment the below line if you want your RAM stolen. Trust me, keep the res small as it is.
     h, w = 541, 961
 
     for res in Conf.SUPPORTED_RESOLUTIONS:
