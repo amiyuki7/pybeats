@@ -1,4 +1,5 @@
-from .app import App, Loading
+from .app import App
+from .states.loading import Loading
 
 
 def main() -> None:
