@@ -57,6 +57,9 @@ class Sfx:
     # Song select screen R/L buttons
     switch_button = mixer.Sound(f"{SFX_DIR}/switch_button.wav")
 
+    info_in = mixer.Sound(f"{SFX_DIR}/info_in.wav")
+    info_out = mixer.Sound(f"{SFX_DIR}/info_out.wav")
+
 
 class MixerWrapper:
     def __init__(self) -> None:
@@ -461,6 +464,14 @@ class SongSelect(State):
         self.info_button_rect.y = SCREEN_HEIGHT // 10 * 7
         self.info_button_rect.x = self.frame_rect.x + self.info_button_rect.width // 5 * 4
 
+        self.info_overlay = Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.info_overlay.set_alpha(0)
+        self.info_overlay.fill(Colours.Black)
+
+        self.info_pad = self.ctx.image_cache["assets/info_pad.jpg"]
+        self.info_pad = pg.transform.scale(self.info_pad, (0, 0)).convert_alpha()
+        self.info_pad_rect = self.info_pad.get_rect(center=Display.get_rect().center)
+
         font_scale = 20
         self.font = font.Font(f"{ROOT_DIR}/fonts/KozGoPro-Bold.otf", SCREEN_HEIGHT // font_scale)
         self.song_text = self.font.render(f"【{self.song_ref.prod}】{self.song_ref.name}", True, (255, 255, 255))
@@ -468,9 +479,36 @@ class SongSelect(State):
         self.song_text_rect = self.song_text.get_rect(center=Display.get_rect().center)
         self.song_text_rect.centery = self.info_button_rect.centery
 
+        # INFO THINGS
+        self.info_font = font.Font(f"{ROOT_DIR}/fonts/KozGoPro-Bold.otf", 0)
+        self.info_song_text = self.info_font.render("", True, (255, 255, 255))
+        self.info_song_text_rect = self.info_pad.get_rect().center
+        self.info_prod_text = self.info_font.render("", True, (255, 255, 255))
+        self.info_prod_text_rect = self.info_pad.get_rect().center
+        self.info_labels_text = self.info_font.render("", True, (255, 255, 255))
+        self.info_labels_text_rect = self.info_pad.get_rect().center
+        self.info_cover = Surface((0, 0), SRCALPHA)
+        self.info_cover_rect = self.info_pad.get_rect().center
+        self.info_vocaloid = Surface((0, 0), SRCALPHA)
+        self.info_vocaloid_rect = self.info_pad.get_rect().center
+        self.info_cover_text = self.info_font.render("", True, (255, 255, 255))
+        self.info_cover_text_rect = self.info_pad.get_rect().center
+        self.info_vocaloid_text = self.info_font.render("", True, (255, 255, 255))
+        self.info_vocaloid_text_rect = self.info_pad.get_rect().center
+        self.info_disclaimer = self.info_font.render("", True, (255, 255, 255))
+        self.info_disclaimer_rect = self.info_pad.get_rect().center
+
         self.hover_right = False
         self.hover_left = False
         self.hover_info = True
+        self.hover_out = False
+
+        self.phase_info = False
+        self.unphase_info = False
+        self.showing_info = False
+        self.pad_zoom_scale = 0
+        self.info_font_scale = 100
+        self.info_avatar_scale = 0
 
         self.switching = False
         self.switching_left = False
@@ -510,12 +548,143 @@ class SongSelect(State):
         self.song_ref = self.ctx.song_cache[self.ctx.song_names[self.song_idx]]
         self.lite_img = self.load_lite_img()
 
-        self.song_text = self.font.render(f"【{self.song_ref.prod_en}】{self.song_ref.name_en}", True, (255, 255, 255))
+        self.song_text = self.font.render(f"【{self.song_ref.prod}】{self.song_ref.name}", True, (255, 255, 255))
         self.song_text.set_alpha(200)
         self.song_text_rect = self.song_text.get_rect(center=Display.get_rect().center)
         self.song_text_rect.centery = self.info_button_rect.centery
 
         self.prev_percent = 100
+
+    def show_info(self) -> None:
+        self.phase_info = True
+        self.hover_info = False
+        self.info_button.set_alpha(255)
+
+    def hide_info(self) -> None:
+        self.unphase_info = True
+        self.hover_out = False
+
+    ## QUICKHERE
+    def animate_info(self) -> None:
+        if self.phase_info:
+            if self.info_overlay.get_alpha() >= 200:  # type: ignore
+                self.phase_info = False
+                self.showing_info = True
+                return
+        elif self.unphase_info:
+            if self.info_overlay.get_alpha() <= 0:  # type: ignore
+                self.unphase_info = False
+                self.showing_info = False
+
+                self.pad_zoom_scale = 0
+                self.info_font_scale = 100
+                self.info_avatar_scale = 0
+                return
+
+        if self.phase_info:
+            self.info_overlay.set_alpha(self.info_overlay.get_alpha() + 10)  # type: ignore
+        elif self.unphase_info:
+            self.info_overlay.set_alpha(self.info_overlay.get_alpha() - 10)  # type: ignore
+
+        self.info_pad = self.ctx.image_cache["assets/info_pad.jpg"]
+        scale = SCREEN_WIDTH * self.pad_zoom_scale / self.info_pad.get_width()
+
+        self.info_pad = pg.transform.scale(
+            self.info_pad, (self.info_pad.get_width() * scale, self.info_pad.get_height() * scale)
+        ).convert_alpha()
+        self.info_pad_rect = self.info_pad.get_rect(center=Display.get_rect().center)
+
+        if self.pad_zoom_scale >= 0.1:
+            # Render things on the pad
+            self.info_font = font.Font(
+                f"{ROOT_DIR}/fonts/SourceHanSerif-Bold.otf", floor(SCREEN_HEIGHT / self.info_font_scale)
+            )
+
+            self.info_song_text = self.info_font.render("Song Name: " + self.song_ref.name, True, (50, 50, 50))
+            self.info_song_text_rect = self.info_song_text.get_rect()
+            self.info_song_text_rect.centerx = self.info_pad_rect.centerx
+            self.info_song_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 1)
+
+            self.info_prod_text = self.info_font.render("Producer: " + self.song_ref.prod, True, (50, 50, 50))
+            self.info_prod_text_rect = self.info_prod_text.get_rect()
+            self.info_prod_text_rect.centerx = self.info_pad_rect.centerx
+            self.info_prod_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 1.5)
+
+            self.info_labels_text = self.info_font.render("【C. Vocal】    【Vocaloid】", True, (50, 50, 50))
+            self.info_labels_text_rect = self.info_labels_text.get_rect()
+            self.info_labels_text_rect.centerx = self.info_pad_rect.centerx
+            self.info_labels_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 2.5)
+
+            raw_img = self.ctx.image_cache[self.song_ref.vocals.cover_avatar]
+            raw_img = pg.transform.scale(raw_img, (self.info_avatar_scale, self.info_avatar_scale)).convert_alpha()
+            self.info_cover = Surface(raw_img.get_size(), SRCALPHA)
+            pg.draw.ellipse(self.info_cover, (255, 255, 255, 255), (0, 0, raw_img.get_width(), raw_img.get_height()))
+            self.info_cover.blit(raw_img, (0, 0), special_flags=BLEND_RGB_MIN)
+            self.info_cover_rect = self.info_cover.get_rect()
+            self.info_cover_rect.centerx = floor(self.info_pad_rect.centerx - self.info_pad_rect.width // 8 * 1.5)
+            self.info_cover_rect.centery = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 4.25)
+
+            raw_img = self.ctx.image_cache[self.song_ref.vocals.vocaloid_avatar]
+            raw_img = pg.transform.scale(raw_img, (self.info_avatar_scale, self.info_avatar_scale)).convert_alpha()
+            self.info_vocaloid = Surface(raw_img.get_size(), SRCALPHA)
+            pg.draw.ellipse(self.info_vocaloid, (255, 255, 255, 255), (0, 0, raw_img.get_width(), raw_img.get_height()))
+            self.info_vocaloid.blit(raw_img, (0, 0), special_flags=BLEND_RGB_MIN)
+            self.info_vocaloid_rect = self.info_vocaloid.get_rect()
+            self.info_vocaloid_rect.centerx = floor(self.info_pad_rect.centerx + self.info_pad_rect.width // 8 * 1.5)
+            self.info_vocaloid_rect.centery = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 4.25)
+
+            self.info_cover_text = self.info_font.render(
+                f"{self.song_ref.vocals.cover == '' and 'None' or self.song_ref.vocals.cover}",
+                True,
+                (50, 50, 50),
+            )
+            self.info_cover_text_rect = self.info_cover_text.get_rect()
+            self.info_cover_text_rect.centerx = self.info_cover_rect.centerx
+            self.info_cover_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 5.5)
+
+            self.info_vocaloid_text = self.info_font.render(
+                self.song_ref.vocals.vocaloid,
+                True,
+                (50, 50, 50),
+            )
+            self.info_vocaloid_text_rect = self.info_vocaloid_text.get_rect()
+            self.info_vocaloid_text_rect.centerx = self.info_vocaloid_rect.centerx
+            self.info_vocaloid_text_rect.y = self.info_cover_text_rect.y
+
+            self.info_disclaimer = self.info_font.render(
+                self.song_ref.questionable and "* Contains questionable lyrics" or "",
+                True,
+                (255, 102, 128),
+            )
+            self.info_disclaimer_rect = self.info_disclaimer.get_rect()
+            self.info_disclaimer_rect.x = self.info_pad_rect.left + self.info_pad_rect.width // 8
+            self.info_disclaimer_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 6.5)
+        else:
+            self.info_song_text = Surface((0, 0), SRCALPHA)
+            self.info_song_text_rect = Rect(0, 0, 0, 0)
+            self.info_prod_text = Surface((0, 0), SRCALPHA)
+            self.info_prod_text_rect = Rect(0, 0, 0, 0)
+            self.info_labels_text = Surface((0, 0), SRCALPHA)
+            self.info_labels_text_rect = Rect(0, 0, 0, 0)
+            self.info_cover = Surface((0, 0), SRCALPHA)
+            self.info_cover_rect = Rect(0, 0, 0, 0)
+            self.info_vocaloid = Surface((0, 0), SRCALPHA)
+            self.info_vocaloid_rect = Rect(0, 0, 0, 0)
+            self.info_cover_text = Surface((0, 0), SRCALPHA)
+            self.info_cover_text_rect = Rect(0, 0, 0, 0)
+            self.info_vocaloid_text = Surface((0, 0), SRCALPHA)
+            self.info_vocaloid_text_rect = Rect(0, 0, 0, 0)
+            self.info_disclaimer = Surface((0, 0), SRCALPHA)
+            self.info_disclaimer_rect = Rect(0, 0, 0, 0)
+
+        if self.phase_info:
+            self.pad_zoom_scale += 0.4 / 20
+            self.info_font_scale -= 75 / 20
+            self.info_avatar_scale += (SCREEN_HEIGHT / 6.75) / 20
+        elif self.unphase_info:
+            self.pad_zoom_scale -= 0.4 / 20
+            self.info_font_scale += 75 / 20
+            self.info_avatar_scale -= (SCREEN_HEIGHT / 6.75) / 20
 
     def update(self) -> None:
         cursor = pg.mouse.get_pos()
@@ -534,6 +703,23 @@ class SongSelect(State):
                 self.prev_percent -= 3
             elif self.prev_percent > 0:
                 self.prev_percent -= 1
+
+        elif self.phase_info or self.unphase_info:
+            self.animate_info()
+
+        elif self.showing_info:
+            x, y = cursor
+
+            # Checks:
+            # 1. The cursor is not within the pad Rect
+            # 2. But it's ok if the cursor is on a pixel on the pad Rect that has an alpha value of 0
+            if (
+                not self.info_pad_rect.collidepoint(x, y)
+                or self.info_pad.get_at([x - self.info_pad_rect.x, y - self.info_pad_rect.y])[3] == 0
+            ):
+                self.hover_out = True
+            else:
+                self.hover_out = False
 
         else:
             match cursor:
@@ -598,6 +784,18 @@ class SongSelect(State):
             # Normal
             Display.blit(self.lite_img, (self.frame_rect.x, self.frame_rect.y))
             Display.blit(self.frame, self.frame_rect)
+
+        if self.phase_info or self.showing_info:
+            Display.blit(self.info_overlay, (0, 0))
+            Display.blit(self.info_pad, self.info_pad_rect)
+            Display.blit(self.info_song_text, self.info_song_text_rect)
+            Display.blit(self.info_prod_text, self.info_prod_text_rect)
+            Display.blit(self.info_labels_text, self.info_labels_text_rect)
+            Display.blit(self.info_cover_text, self.info_cover_text_rect)
+            Display.blit(self.info_vocaloid_text, self.info_vocaloid_text_rect)
+            Display.blit(self.info_disclaimer, self.info_disclaimer_rect)
+            Display.blit(self.info_cover, self.info_cover_rect)
+            Display.blit(self.info_vocaloid, self.info_vocaloid_rect)
 
 
 class InGame(State):
@@ -689,9 +887,11 @@ class App:
         "assets/frame90.jpg",
         "assets/switch_button_1_crop.jpg",
         "assets/info_icon.jpg",
+        "assets/info_pad.jpg",
         "beatmaps/ド屑/images/cover_avatar.jpg",
         "beatmaps/ド屑/images/lite.jpg",
         "beatmaps/ド屑/images/vocaloid_avatar.jpg",
+        "beatmaps/ゴーストルール/images/cover_avatar.jpg",
         "beatmaps/ゴーストルール/images/lite.jpg",
         "beatmaps/ゴーストルール/images/vocaloid_avatar.jpg",
     ]
@@ -704,7 +904,6 @@ class App:
 
         self.Clock = pg.time.Clock()
 
-        self.setState(init_state)
         self.mixer: MixerWrapper = MixerWrapper()
 
         self.fader = FadeOverlay(ctx=self, mode=None)
@@ -719,6 +918,7 @@ class App:
             self.cursor, (self.cursor.get_width() / cursor_scale, self.cursor.get_height() / cursor_scale)
         )
         self.cursor.set_alpha(200)
+        self.setState(init_state)
 
     def setState(self, state: Type[State]) -> None:
         self._state = state(self)
@@ -780,6 +980,14 @@ class App:
                     if self._state.hover_right or self._state.hover_left:
                         self.mixer.play_sfx(Sfx.switch_button)
                         self._state.switch_map()
+                    elif self._state.hover_info:
+                        self.mixer.play_sfx(Sfx.info_in)
+                        time.sleep(0.2)
+                        self._state.show_info()
+                    elif self._state.hover_out:
+                        self.mixer.play_sfx(Sfx.info_out)
+                        time.sleep(0.2)
+                        self._state.hide_info()
 
     def manage_states(self) -> None:
         if type(self._state) is Loading and self._state.load_task(self.load_cache):
