@@ -12,11 +12,9 @@ bpm_semihemiquaver = 840
 
 [vocals]
 vocaloid = "初音ミク"
-vocaloid_en = "Hatsune Miku"
-vocaloid_avatar = "beatmaps/ド屑/images/vocaloid_avatar.jpg"
+vocaloid_avatar = "beatmaps/ゴーストルール/images/vocaloid_avatar.jpg"
 cover = ""
-cover_en = ""
-cover_avatar = ""
+cover_avatar = "beatmaps/ゴーストルール/images/cover_avatar.jpg"
 
 [mv]
 available = false

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import colorama
+
 from .conf import Conf
 import toml
 from typing import Any, Dict, List
@@ -79,10 +80,8 @@ class SongData:
         class Vocals:
             __o = o["vocals"]
             vocaloid: str = __o["vocaloid"]
-            vocaloid_en: str = __o["vocaloid_en"]
             vocaloid_avatar: str = __o["vocaloid_avatar"]
             cover: str = __o["cover"]
-            cover_en: str = __o["cover_en"]
             cover_avatar: str = __o["cover_avatar"]
 
         self.vocals = Vocals
@@ -115,15 +114,3 @@ class SongData:
 def fetch_song_data(song: str) -> SongData:
     meta = toml.load(f"{Conf.ROOT_DIR}/beatmaps/{song}/meta.toml")
     return SongData(meta)
-
-
-# from pprint import pprint
-#
-# song_data = fetch_song_data("ド屑")
-# note_data = song_data.note_data
-#
-# pprint(note_data.next_note_beat)
-# pprint(note_data.notes[note_data.next_note_beat][0].__dict__)
-# # pprint(note_data.notes[note_data.next_note_beat][0].__dict__)
-# # pprint(note_data.notes[note_data.next_note_beat][0].__dict__)
-# # pprint(note_data.notes[note_data.next_note_beat][0].__dict__)

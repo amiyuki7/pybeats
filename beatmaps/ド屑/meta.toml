@@ -12,10 +12,8 @@ bpm_semihemiquaver = 920
 
 [vocals]
 vocaloid = "歌愛ユキ"
-vocaloid_en = "Kaai Yuki"
 vocaloid_avatar = "beatmaps/ド屑/images/vocaloid_avatar.jpg"
 cover = "町たちま"
-cover_en = "Machita Chima"
 cover_avatar = "beatmaps/ド屑/images/cover_avatar.jpg"
 
 [mv]
