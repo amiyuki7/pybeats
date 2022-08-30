@@ -380,6 +380,8 @@ class App:
             # Song select screen R/L buttons
             switch_button = mixer.Sound(f"{SFX_DIR}/switch_button2.wav")
 
+            back = mixer.Sound(f"{SFX_DIR}/back.wav")
+
             info_in = mixer.Sound(f"{SFX_DIR}/info_in2.wav")
             info_out = mixer.Sound(f"{SFX_DIR}/info_out2.wav")
 
