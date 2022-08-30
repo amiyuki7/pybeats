@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
+import time
+
 import pygame as pg
 from pygame import font, SRCALPHA, BLEND_RGBA_MIN
 from math import floor
@@ -176,6 +178,12 @@ class SongSelect(State):
         self.song_text_rect = self.song_text.get_rect(center=self.ctx.Display.get_rect().center)
         self.song_text_rect.centery = self.info_button_rect.centery
 
+        # Change the previewing song
+        self.ctx.mixer.load(f"{ROOT_DIR}/{self.song_ref.lite_song_path}")
+        time.sleep(0.2)
+        self.ctx.mixer.set_volume(0.4)
+        self.ctx.mixer.play()
+
         self.prev_percent = 100
 
     def show_info(self) -> None:
@@ -187,7 +195,6 @@ class SongSelect(State):
         self.unphase_info = True
         self.hover_out = False
 
-    ## QUICKHERE
     def animate_info(self) -> None:
         if self.phase_info:
             if self.info_overlay.get_alpha() >= 200:  # type: ignore
@@ -310,6 +317,13 @@ class SongSelect(State):
             self.info_avatar_scale -= (self.ctx.SCREEN_HEIGHT / 6.75) / 20
 
     def update(self) -> None:
+        # Loop the preview music
+        music_pos = self.ctx.mixer.get_music_pos()
+        if music_pos == -1:
+            self.ctx.mixer.load(f"{ROOT_DIR}/{self.song_ref.lite_song_path}")
+            self.ctx.mixer.set_volume(0.4)
+            self.ctx.mixer.play()
+
         cursor = pg.mouse.get_pos()
 
         if self.switching:
