@@ -34,21 +34,35 @@ class MixerWrapper:
         self.paused: bool = False
         self.playing: bool = False
 
-    def toggle_pause(self) -> None:
-        if self.playing:
-            if self.paused:
-                mixer.music.unpause()
-            else:
-                mixer.music.pause()
-                self.paused = True
-        else:
-            mixer.music.play()
-            self.playing = True
+    # def toggle_pause(self) -> None:
+    #     if self.playing:
+    #         if self.paused:
+    #             mixer.music.unpause()
+    #         else:
+    #             mixer.music.pause()
+    #             self.paused = True
+    #     else:
+    #         mixer.music.play()
+    #         self.playing = True
 
-    def load(self, song_file: str) -> None:
+    @staticmethod
+    def load(song_file: str) -> None:
         mixer.music.load(song_file)
 
-    def play_sfx(self, sfx: mixer.Sound, channel: Optional[mixer.Channel] = None) -> None:
+    @staticmethod
+    def play() -> None:
+        mixer.music.play()
+
+    @staticmethod
+    def set_volume(volume: float) -> None:
+        mixer.music.set_volume(volume)
+
+    @staticmethod
+    def get_music_pos() -> int:
+        return mixer.music.get_pos()
+
+    @staticmethod
+    def play_sfx(sfx: mixer.Sound, channel: Optional[mixer.Channel] = None) -> None:
         if channel:
             channel.play(sfx)
         mixer.find_channel().play(sfx)
