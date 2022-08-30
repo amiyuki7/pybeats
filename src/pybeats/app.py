@@ -62,6 +62,10 @@ class MixerWrapper:
         mixer.music.set_volume(volume)
 
     @staticmethod
+    def get_volume() -> float:
+        return mixer.music.get_volume()
+
+    @staticmethod
     def get_music_pos() -> int:
         return mixer.music.get_pos()
 
@@ -247,18 +251,30 @@ class FadeOverlay:
 
         self.has_toggled_mode: bool = False
 
+        # Fading out music when going from State -> SongSelect
+        self.adjust_volume_flag: bool = False
+
     def fadein(self) -> None:
         self.fade_alpha -= 5
+
         self.fade_overlay.set_alpha(self.fade_alpha)
         if self.fade_alpha <= 0:
             self.set_mode(None)
 
     def fadeout(self) -> None:
         self.fade_alpha += 5
+
+        if self.adjust_volume_flag:
+            self.ctx.mixer.set_volume(self.ctx.mixer.get_volume() - 0.02)
+
         self.fade_overlay.set_alpha(self.fade_alpha)
 
     def fade_to_state(self, state: Type[State]) -> None:
         self.set_mode("out")
+
+        if state == SongSelect:
+            self.adjust_volume_flag = True
+
         if self.fade_alpha >= 255:
             self.set_mode(None)
             self.ctx.setState(state)
@@ -317,6 +333,7 @@ class App:
         "assets/frame90.jpg",
         "assets/switch_button_1_crop.jpg",
         "assets/info_icon.jpg",
+        "assets/back_icon.jpg",
         "assets/info_pad.jpg",
         "beatmaps/ド屑/images/cover_avatar.jpg",
         "beatmaps/ド屑/images/lite.jpg",
@@ -357,14 +374,14 @@ class App:
             flair = mixer.Sound(f"{SFX_DIR}/flair.wav")
             flair_crit = mixer.Sound(f"{SFX_DIR}/flair_crit.wav")
             # Major buttons
-            play_title = mixer.Sound(f"{SFX_DIR}/play_title.wav")
+            play_title = mixer.Sound(f"{SFX_DIR}/play_title2.wav")
             play_game = mixer.Sound(f"{SFX_DIR}/play_game.wav")
 
             # Song select screen R/L buttons
-            switch_button = mixer.Sound(f"{SFX_DIR}/switch_button.wav")
+            switch_button = mixer.Sound(f"{SFX_DIR}/switch_button2.wav")
 
-            info_in = mixer.Sound(f"{SFX_DIR}/info_in.wav")
-            info_out = mixer.Sound(f"{SFX_DIR}/info_out.wav")
+            info_in = mixer.Sound(f"{SFX_DIR}/info_in2.wav")
+            info_out = mixer.Sound(f"{SFX_DIR}/info_out2.wav")
 
         self.sfx = Sfx
 
@@ -444,11 +461,11 @@ class App:
                         self._state.switch_map()
                     elif self._state.hover_info:
                         self.mixer.play_sfx(self.sfx.info_in)
-                        time.sleep(0.2)
+                        # time.sleep(0.2)
                         self._state.show_info()
                     elif self._state.hover_out:
                         self.mixer.play_sfx(self.sfx.info_out)
-                        time.sleep(0.2)
+                        # time.sleep(0.2)
                         self._state.hide_info()
 
     def manage_states(self) -> None:
@@ -461,6 +478,9 @@ class App:
             self.fader.fade_to_state(SongSelect)
 
     def run(self) -> None:
+        self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
+        self.mixer.play()
+
         while 1:
             self.check_events()
             self.manage_states()
