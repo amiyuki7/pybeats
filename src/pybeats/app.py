@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import sys
-import time
 from abc import ABC, abstractmethod
 from threading import Thread
 from typing import Dict, List, Literal, Optional, Tuple, Type
@@ -260,6 +259,7 @@ class FadeOverlay:
         self.fade_overlay.set_alpha(self.fade_alpha)
         if self.fade_alpha <= 0:
             self.set_mode(None)
+            self.adjust_volume_flag = False
 
     def fadeout(self) -> None:
         self.fade_alpha += 5
@@ -463,21 +463,26 @@ class App:
                         self._state.switch_map()
                     elif self._state.hover_info:
                         self.mixer.play_sfx(self.sfx.info_in)
-                        # time.sleep(0.2)
                         self._state.show_info()
                     elif self._state.hover_out:
                         self.mixer.play_sfx(self.sfx.info_out)
-                        # time.sleep(0.2)
                         self._state.hide_info()
+                    elif self._state.hover_back:
+                        self.mixer.play_sfx(self.sfx.back)
+                        self._state.back = True
+                        self.mixer.unload()
+                        self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
+                        self.mixer.play()
 
     def manage_states(self) -> None:
-        # from .states.loading import Loading
-
         if type(self._state) is Loading and self._state.load_task(self.load_cache):
             self.fader.fade_to_state(Menu)
 
         if type(self._state) is Menu and self._state.title.get_alpha() == 0:
             self.fader.fade_to_state(SongSelect)
+
+        if type(self._state) is SongSelect and self._state.back:
+            self.fader.fade_to_state(Menu)
 
     def run(self) -> None:
         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")

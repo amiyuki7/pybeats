@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
-import time
 import random
 
 import pygame as pg
@@ -136,6 +135,8 @@ class SongSelect(State):
         self.hover_back = False
         self.hover_info = True
         self.hover_out = False
+
+        self.back = False
 
         self.phase_info = False
         self.unphase_info = False
