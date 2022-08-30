@@ -50,6 +50,10 @@ class MixerWrapper:
         mixer.music.load(song_file)
 
     @staticmethod
+    def unload() -> None:
+        mixer.music.unload()
+
+    @staticmethod
     def play() -> None:
         mixer.music.play()
 
@@ -66,9 +70,6 @@ class MixerWrapper:
         if channel:
             channel.play(sfx)
         mixer.find_channel().play(sfx)
-
-
-# Mixer = MixerWrapper()
 
 
 class Conductor:

@@ -58,6 +58,11 @@ class Menu(State):
         self.fade_speed = 8
 
     def update(self) -> None:
+        # Background music for menu screen
+        if self.ctx.mixer.get_music_pos() == -1:
+            self.ctx.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ.mp3")
+            self.ctx.mixer.play()
+
         if self.switchf:
             self.title_rect.y -= self.shift_dist
             self.play_rect.y -= self.shift_dist

@@ -140,6 +140,11 @@ class SongSelect(State):
 
         self.prev_percent: int = 0
 
+        self.ctx.mixer.unload()
+        self.ctx.mixer.load(f"{ROOT_DIR}/{self.song_ref.lite_song_path}")
+        self.ctx.mixer.set_volume(0.4)
+        self.ctx.mixer.play()
+
     def load_lite_img(self) -> Surface:
         scale = self.ctx.SCREEN_WIDTH * 0.6 / self.ctx.image_cache["assets/frame90.jpg"].get_width()
         img = self.ctx.image_cache[self.song_ref.lite_img]
