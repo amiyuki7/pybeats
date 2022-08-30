@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 import time
+import random
 
 import pygame as pg
 from pygame import font, SRCALPHA, BLEND_RGBA_MIN
@@ -27,7 +28,7 @@ class SongSelect(State):
         # 0 => ド屑
         # 1 => ゴーストルール
         # などなど
-        self.song_idx = 0
+        self.song_idx = random.randint(0, len(self.ctx.song_cache) - 1)
         self.song_ref = self.ctx.song_cache[self.ctx.song_names[self.song_idx]]
 
         self.bg: Surface = self.ctx.image_cache["assets/menu_tint.jpg"]
@@ -45,7 +46,7 @@ class SongSelect(State):
             self.frame, (self.frame.get_width() * scale, self.frame.get_height() * scale)
         ).convert_alpha()
         self.frame_rect = self.frame.get_rect(center=self.ctx.Display.get_rect().center)
-        self.frame_rect.y = self.ctx.SCREEN_HEIGHT // 7
+        self.frame_rect.y = self.ctx.SCREEN_HEIGHT // 15
 
         self.frame.set_alpha(255)
 
@@ -80,13 +81,20 @@ class SongSelect(State):
         self.lmap_button_rect.x = self.ctx.SCREEN_WIDTH // 10
         self.lmap_button_rect.centery = self.frame_rect.centery
 
+        self.back_button = self.ctx.image_cache["assets/back_icon.jpg"]
+        scale = self.ctx.SCREEN_WIDTH * 0.05 / self.back_button.get_width()
+        self.back_button = pg.transform.scale(
+            self.back_button, (self.back_button.get_width() * scale, self.back_button.get_height() * scale)
+        ).convert_alpha()
+        self.back_button_rect = self.back_button.get_rect()
+        self.back_button_rect.x = self.back_button_rect.y = 10
+
         self.info_button = self.ctx.image_cache["assets/info_icon.jpg"]
-        scale = self.ctx.SCREEN_WIDTH * 0.05 / self.info_button.get_width()
         self.info_button = pg.transform.scale(
             self.info_button, (self.info_button.get_width() * scale, self.info_button.get_height() * scale)
         ).convert_alpha()
         self.info_button_rect = self.info_button.get_rect(center=self.ctx.Display.get_rect().center)
-        self.info_button_rect.y = self.ctx.SCREEN_HEIGHT // 10 * 7
+        self.info_button_rect.y = self.frame_rect.y + self.frame_rect.height // 40 * 37
         self.info_button_rect.x = self.frame_rect.x + self.info_button_rect.width // 5 * 4
 
         self.info_overlay = Surface((self.ctx.SCREEN_WIDTH, self.ctx.SCREEN_HEIGHT))
@@ -125,6 +133,7 @@ class SongSelect(State):
 
         self.hover_right = False
         self.hover_left = False
+        self.hover_back = False
         self.hover_info = True
         self.hover_out = False
 
@@ -185,7 +194,6 @@ class SongSelect(State):
 
         # Change the previewing song
         self.ctx.mixer.load(f"{ROOT_DIR}/{self.song_ref.lite_song_path}")
-        time.sleep(0.2)
         self.ctx.mixer.set_volume(0.4)
         self.ctx.mixer.play()
 
@@ -387,6 +395,14 @@ class SongSelect(State):
                 case (
                     x,
                     y,
+                ) if self.back_button_rect.left < x < self.back_button_rect.right and self.back_button_rect.top < y < self.back_button_rect.bottom and (
+                    self.back_button.get_at([x - self.back_button_rect.x, y - self.back_button_rect.y])[3] > 0
+                ):
+                    self.back_button.set_alpha(100)
+                    self.hover_back = True
+                case (
+                    x,
+                    y,
                 ) if self.info_button_rect.left < x < self.info_button_rect.right and self.info_button_rect.top < y < self.info_button_rect.bottom and (
                     self.info_button.get_at([x - self.info_button_rect.x, y - self.info_button_rect.y])[3] > 0
                 ):
@@ -396,9 +412,11 @@ class SongSelect(State):
                 case _:
                     self.rmap_button.set_alpha(255)
                     self.lmap_button.set_alpha(255)
+                    self.back_button.set_alpha(255)
                     self.info_button.set_alpha(255)
                     self.hover_right = False
                     self.hover_left = False
+                    self.hover_back = False
                     self.hover_info = False
 
     def draw(self) -> None:
@@ -408,6 +426,7 @@ class SongSelect(State):
         self.ctx.Display.blit(self.lmap_button, self.lmap_button_rect)
         self.ctx.Display.blit(self.info_button, self.info_button_rect)
         self.ctx.Display.blit(self.song_text, self.song_text_rect)
+        self.ctx.Display.blit(self.back_button, self.back_button_rect)
 
         if self.prev_img:
             # Gradually draw the next song's lite_img over the old one
