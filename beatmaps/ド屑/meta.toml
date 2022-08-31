@@ -21,11 +21,11 @@ available = true
 frames_path = "beatmaps/ド屑/frames"
 
 [difficulty]
-easy = 4
+easy = 3
 normal = 10
 hard = 17
-expert = 23
-master = 27
+# expert = 23
+master = 23
 
 # Normal mode
 [notes]

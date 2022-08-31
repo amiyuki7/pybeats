@@ -21,11 +21,11 @@ available = false
 frames_path = "beatmaps/ゴーストルール/frames"
 
 [difficulty]
-easy = 1
-normal = 1
-hard = 1
-expert = 1
-master = 1
+easy = 4
+normal = 11
+hard = 19
+# expert = 26
+master = 26
 
 # Normal mode
 [notes]

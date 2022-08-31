@@ -98,7 +98,7 @@ class SongData:
             easy: int = __o["easy"]
             normal: int = __o["normal"]
             hard: int = __o["hard"]
-            expert: int = __o["expert"]
+            # expert: int = __o["expert"]
             master: int = __o["master"]
 
         self.difficulty = Difficulty
