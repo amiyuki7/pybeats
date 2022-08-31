@@ -342,6 +342,7 @@ class App:
         "assets/diamond_pink.jpg",
         "assets/diamond_prismatic.jpg",
         "assets/back_icon.jpg",
+        "assets/diff_arrow.jpg",
         "assets/info_pad.jpg",
         "beatmaps/ド屑/images/cover_avatar.jpg",
         "beatmaps/ド屑/images/lite.jpg",
