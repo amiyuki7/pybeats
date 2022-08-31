@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from math import floor
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Literal, Tuple
 
 import pygame as pg
 from pygame import BLEND_RGBA_MIN, SRCALPHA, font
@@ -86,7 +86,6 @@ class SongSelect(State):
             self.info_button, (self.info_button.get_width() * scale, self.info_button.get_height() * scale)
         ).convert_alpha()
         self.info_button_rect = self.info_button.get_rect(center=self.ctx.Display.get_rect().center)
-        # self.info_button_rect.y = self.frame_rect.y + self.frame_rect.height // 40 * 38
         self.info_button_rect.bottom = self.frame_rect.bottom + self.info_button_rect.height // 2
         self.info_button_rect.x = self.frame_rect.x + self.info_button_rect.width // 5 * 4
 
@@ -174,43 +173,28 @@ class SongSelect(State):
         self.diff_arrow_rect.centerx = self.normal_diff_rect.centerx
         self.diff_arrow_rect.y = self.easy_diff_rect.y - self.easy_diff_rect.height * 2
 
-        # TODO: Implement proper on complete stuff, but for now use dummies
-        self.diamond_easy = self.ctx.image_cache["assets/diamond_gray.jpg"]
-        diamond_scale = self.ctx.SCREEN_HEIGHT / 18 / self.diamond_easy.get_height()
-        self.diamond_easy = pg.transform.scale(
-            self.diamond_easy,
-            (self.diamond_easy.get_width() * diamond_scale, self.diamond_easy.get_height() * diamond_scale),
-        ).convert_alpha()
-        self.diamond_easy_rect = self.diamond_easy.get_rect()
-        self.diamond_easy_rect.centerx = self.button_easy_rect.centerx
-        self.diamond_easy_rect.y = floor(self.button_easy_rect.y + self.button_easy_rect.height * 1.1)
-
-        self.diamond_normal = self.ctx.image_cache["assets/diamond_green.jpg"]
-        self.diamond_normal = pg.transform.scale(
+        self.diamond_easy, self.diamond_easy_rect, self.grade_easy, self.grade_easy_rect = self.load_diamond_and_rank(
+            self.song_ref.diamond.easy, self.song_ref.grade.easy, self.button_easy_rect
+        )
+        (
             self.diamond_normal,
-            (self.diamond_normal.get_width() * diamond_scale, self.diamond_normal.get_width() * diamond_scale),
-        ).convert_alpha()
-        self.diamond_normal_rect = self.diamond_normal.get_rect()
-        self.diamond_normal_rect.centerx = self.button_normal_rect.centerx
-        self.diamond_normal_rect.y = floor(self.button_normal_rect.y + self.button_normal_rect.height * 1.1)
-
-        self.diamond_hard = self.ctx.image_cache["assets/diamond_pink.jpg"]
-        self.diamond_hard = pg.transform.scale(
-            self.diamond_hard,
-            (self.diamond_hard.get_width() * diamond_scale, self.diamond_hard.get_height() * diamond_scale),
-        ).convert_alpha()
-        self.diamond_hard_rect = self.diamond_hard.get_rect()
-        self.diamond_hard_rect.centerx = self.button_hard_rect.centerx
-        self.diamond_hard_rect.y = floor(self.button_hard_rect.y + self.button_hard_rect.height * 1.1)
-
-        self.diamond_master = self.ctx.image_cache["assets/diamond_prismatic.jpg"]
-        self.diamond_master = pg.transform.scale(
+            self.diamond_normal_rect,
+            self.grade_normal,
+            self.grade_normal_rect,
+        ) = self.load_diamond_and_rank(
+            self.song_ref.diamond.normal, self.song_ref.grade.normal, self.button_normal_rect
+        )
+        self.diamond_hard, self.diamond_hard_rect, self.grade_hard, self.grade_hard_rect = self.load_diamond_and_rank(
+            self.song_ref.diamond.hard, self.song_ref.grade.hard, self.button_hard_rect
+        )
+        (
             self.diamond_master,
-            (self.diamond_master.get_width() * diamond_scale, self.diamond_master.get_height() * diamond_scale),
-        ).convert_alpha()
-        self.diamond_master_rect = self.diamond_master.get_rect()
-        self.diamond_master_rect.centerx = self.button_master_rect.centerx
-        self.diamond_master_rect.y = floor(self.button_master_rect.y + self.button_master_rect.height * 1.1)
+            self.diamond_master_rect,
+            self.grade_master,
+            self.grade_master_rect,
+        ) = self.load_diamond_and_rank(
+            self.song_ref.diamond.master, self.song_ref.grade.master, self.button_master_rect
+        )
 
         self.back_button = self.ctx.image_cache["assets/back_icon.jpg"]
         scale = self.ctx.SCREEN_WIDTH * 0.05 / self.back_button.get_width()
@@ -285,6 +269,36 @@ class SongSelect(State):
         self.ctx.mixer.set_volume(0.4)
         self.ctx.mixer.play()
 
+    def load_diamond_and_rank(
+        self, grade: Literal["AP", "FC", "CL", "NA"], rank: Literal["C", "B", "A", "S"], button_rect: Rect
+    ) -> Tuple[Surface, Rect, Surface, Rect]:
+
+        diamond = self.ctx.image_cache[f"assets/diamond_{grade}.jpg"]
+        s = self.ctx.SCREEN_HEIGHT / 18 / diamond.get_height()
+        diamond = pg.transform.scale(diamond, (diamond.get_width() * s, diamond.get_height() * s)).convert_alpha()
+
+        match rank:
+            case "C":
+                colour = (150, 150, 150)
+            case "B":
+                colour = (70, 150, 120)
+            case "A":
+                colour = (150, 70, 120)
+            case "S":
+                colour = (150, 100, 180)
+
+        text = self.num_font.render(rank, True, colour)
+
+        diamond_rect = diamond.get_rect()
+        diamond_rect.centerx = button_rect.centerx - button_rect.width // 8
+        diamond_rect.y = floor(button_rect.y + button_rect.height * 1.1)
+
+        text_rect = text.get_rect()
+        text_rect.centerx = button_rect.centerx + button_rect.width // 8
+        text_rect.centery = diamond_rect.centery
+
+        return (diamond, diamond_rect, text, text_rect)
+
     def load_lite_img(self) -> Surface:
         scale = self.ctx.SCREEN_WIDTH * 0.6 / self.ctx.image_cache["assets/frame90.jpg"].get_width()
         img = self.ctx.image_cache[self.song_ref.lite_img]
@@ -339,6 +353,29 @@ class SongSelect(State):
         self.master_num = self.num_font.render(str(self.song_ref.difficulty.master), True, (255, 255, 255))
         self.master_num_rect = self.master_num.get_rect(center=self.button_master_rect.center)
         self.master_num_rect.centery = (self.button_master_rect.bottom + self.master_diff_rect.bottom) // 2
+
+        self.diamond_easy, self.diamond_easy_rect, self.grade_easy, self.grade_easy_rect = self.load_diamond_and_rank(
+            self.song_ref.diamond.easy, self.song_ref.grade.easy, self.button_easy_rect
+        )
+        (
+            self.diamond_normal,
+            self.diamond_normal_rect,
+            self.grade_normal,
+            self.grade_normal_rect,
+        ) = self.load_diamond_and_rank(
+            self.song_ref.diamond.normal, self.song_ref.grade.normal, self.button_normal_rect
+        )
+        self.diamond_hard, self.diamond_hard_rect, self.grade_hard, self.grade_hard_rect = self.load_diamond_and_rank(
+            self.song_ref.diamond.hard, self.song_ref.grade.hard, self.button_hard_rect
+        )
+        (
+            self.diamond_master,
+            self.diamond_master_rect,
+            self.grade_master,
+            self.grade_master_rect,
+        ) = self.load_diamond_and_rank(
+            self.song_ref.diamond.master, self.song_ref.grade.master, self.button_master_rect
+        )
 
         # Change the previewing song
         self.ctx.mixer.load(f"{ROOT_DIR}/{self.song_ref.lite_song_path}")
@@ -718,9 +755,13 @@ class SongSelect(State):
         self.ctx.Display.blit(self.master_diff, self.master_diff_rect)
         self.ctx.Display.blit(self.master_num, self.master_num_rect)
         self.ctx.Display.blit(self.diamond_easy, self.diamond_easy_rect)
+        self.ctx.Display.blit(self.grade_easy, self.grade_easy_rect)
         self.ctx.Display.blit(self.diamond_normal, self.diamond_normal_rect)
+        self.ctx.Display.blit(self.grade_normal, self.grade_normal_rect)
         self.ctx.Display.blit(self.diamond_hard, self.diamond_hard_rect)
+        self.ctx.Display.blit(self.grade_hard, self.grade_hard_rect)
         self.ctx.Display.blit(self.diamond_master, self.diamond_master_rect)
+        self.ctx.Display.blit(self.grade_master, self.grade_master_rect)
         self.ctx.Display.blit(self.diff_arrow, self.diff_arrow_rect)
 
         if self.prev_img:
