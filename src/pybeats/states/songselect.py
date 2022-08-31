@@ -1,15 +1,15 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
 
 import random
+from math import floor
+from typing import TYPE_CHECKING, Optional
 
 import pygame as pg
-from pygame import font, SRCALPHA, BLEND_RGBA_MIN
-from math import floor
-
-from pygame.surface import Surface
+from pygame import BLEND_RGBA_MIN, SRCALPHA, font
 from pygame.rect import Rect
+from pygame.surface import Surface
 
+from ..lib import Difficulty
 from ..conf import Conf
 
 if TYPE_CHECKING:
@@ -171,7 +171,7 @@ class SongSelect(State):
             self.diff_arrow, (self.diff_arrow.get_width() * da_scale, self.diff_arrow.get_height() * da_scale)
         ).convert_alpha()
         self.diff_arrow_rect = self.diff_arrow.get_rect()
-        self.diff_arrow_rect.centerx = self.easy_diff_rect.centerx
+        self.diff_arrow_rect.centerx = self.normal_diff_rect.centerx
         self.diff_arrow_rect.y = self.easy_diff_rect.y - self.easy_diff_rect.height * 2
 
         # TODO: Implement proper on complete stuff, but for now use dummies
@@ -259,6 +259,12 @@ class SongSelect(State):
         self.hover_back = False
         self.hover_info = True
         self.hover_out = False
+        self.hover_easy = False
+        self.hover_normal = False
+        self.hover_hard = False
+        self.hover_master = False
+
+        self.difficulty: Difficulty = Difficulty.Normal
 
         self.back = False
 
@@ -340,6 +346,22 @@ class SongSelect(State):
         self.ctx.mixer.play()
 
         self.prev_percent = 100
+
+    def switch_difficulty(self) -> None:
+        if self.hover_easy:
+            self.diff_arrow_rect.centerx = self.easy_diff_rect.centerx
+            self.difficulty = Difficulty.Easy
+        elif self.hover_normal:
+            self.diff_arrow_rect.centerx = self.normal_diff_rect.centerx
+            self.difficulty = Difficulty.Normal
+        elif self.hover_hard:
+            self.diff_arrow_rect.centerx = self.hard_diff_rect.centerx
+            self.difficulty = Difficulty.Hard
+        elif self.hover_master:
+            self.diff_arrow_rect.centerx = self.master_diff_rect.centerx
+            self.difficulty = Difficulty.Master
+
+        self.ctx.mixer.play_sfx(self.ctx.sfx.tap_lane_trunc)
 
     def show_info(self) -> None:
         self.phase_info = True
@@ -550,16 +572,130 @@ class SongSelect(State):
                 ):
                     self.info_button.set_alpha(100)
                     self.hover_info = True
+                # Thumbnail
+                case (
+                    x,
+                    y,
+                ) if self.frame_rect.left < x < self.frame_rect.right and self.frame_rect.top < y < self.frame_rect.bottom and (
+                    self.lite_img.get_at([x - self.frame_rect.x, y - self.frame_rect.y])[3] > 0
+                ):
+                    self.lite_img = self.load_lite_img()
 
+                    if self.difficulty == Difficulty.Easy:
+                        self.lite_img.fill((0, 50, 30), special_flags=pg.BLEND_ADD)
+                    elif self.difficulty == Difficulty.Normal:
+                        self.lite_img.fill((0, 30, 50), special_flags=pg.BLEND_ADD)
+                    elif self.difficulty == Difficulty.Hard:
+                        self.lite_img.fill((50, 0, 30), special_flags=pg.BLEND_ADD)
+                    elif self.difficulty == Difficulty.Master:
+                        self.lite_img.fill((30, 0, 50), special_flags=pg.BLEND_ADD)
+                # Difficulty buttons
+                case (
+                    x,
+                    y,
+                ) if self.button_easy_rect.left < x < self.button_easy_rect.right and self.button_easy_rect.top < y < self.button_easy_rect.bottom:
+                    self.button_easy.set_alpha(100)
+                    self.easy_diff.set_alpha(100)
+                    self.easy_num.set_alpha(100)
+                    self.hover_easy = True
+                    self.hover_normal = False
+                    self.hover_hard = False
+                    self.hover_master = False
+                    self.button_normal.set_alpha(255)
+                    self.normal_diff.set_alpha(255)
+                    self.normal_num.set_alpha(255)
+                    self.button_hard.set_alpha(255)
+                    self.hard_diff.set_alpha(255)
+                    self.hard_num.set_alpha(255)
+                    self.button_master.set_alpha(255)
+                    self.master_diff.set_alpha(255)
+                    self.master_num.set_alpha(255)
+                case (
+                    x,
+                    y,
+                ) if self.button_normal_rect.left < x < self.button_normal_rect.right and self.button_normal_rect.top < y < self.button_normal_rect.bottom:
+                    self.button_normal.set_alpha(100)
+                    self.normal_diff.set_alpha(100)
+                    self.normal_num.set_alpha(100)
+                    self.hover_normal = True
+                    self.hover_easy = False
+                    self.hover_hard = False
+                    self.hover_master = False
+                    self.button_easy.set_alpha(255)
+                    self.easy_diff.set_alpha(255)
+                    self.easy_num.set_alpha(255)
+                    self.button_hard.set_alpha(255)
+                    self.hard_diff.set_alpha(255)
+                    self.hard_num.set_alpha(255)
+                    self.button_master.set_alpha(255)
+                    self.master_diff.set_alpha(255)
+                    self.master_num.set_alpha(255)
+                case (
+                    x,
+                    y,
+                ) if self.button_hard_rect.left < x < self.button_hard_rect.right and self.button_hard_rect.top < y < self.button_hard_rect.bottom:
+                    self.button_hard.set_alpha(100)
+                    self.hard_diff.set_alpha(100)
+                    self.hard_num.set_alpha(100)
+                    self.hover_hard = True
+                    self.hover_easy = False
+                    self.hover_normal = False
+                    self.hover_master = False
+                    self.button_easy.set_alpha(255)
+                    self.easy_diff.set_alpha(255)
+                    self.easy_num.set_alpha(255)
+                    self.button_normal.set_alpha(255)
+                    self.normal_diff.set_alpha(255)
+                    self.normal_num.set_alpha(255)
+                    self.button_master.set_alpha(255)
+                    self.master_diff.set_alpha(255)
+                    self.master_num.set_alpha(255)
+                case (
+                    x,
+                    y,
+                ) if self.button_master_rect.left < x < self.button_master_rect.right and self.button_master_rect.top < y < self.button_master_rect.bottom:
+                    self.button_master.set_alpha(100)
+                    self.master_diff.set_alpha(100)
+                    self.master_num.set_alpha(100)
+                    self.hover_master = True
+                    self.hover_easy = False
+                    self.hover_normal = False
+                    self.hover_hard = False
+                    self.button_easy.set_alpha(255)
+                    self.easy_diff.set_alpha(255)
+                    self.easy_num.set_alpha(255)
+                    self.button_normal.set_alpha(255)
+                    self.normal_diff.set_alpha(255)
+                    self.normal_num.set_alpha(255)
+                    self.button_hard.set_alpha(255)
+                    self.hard_diff.set_alpha(255)
+                    self.hard_num.set_alpha(255)
                 case _:
+                    self.lite_img = self.load_lite_img()
                     self.rmap_button.set_alpha(255)
                     self.lmap_button.set_alpha(255)
                     self.back_button.set_alpha(255)
                     self.info_button.set_alpha(255)
+                    self.button_easy.set_alpha(255)
+                    self.easy_diff.set_alpha(255)
+                    self.easy_num.set_alpha(255)
+                    self.button_normal.set_alpha(255)
+                    self.normal_diff.set_alpha(255)
+                    self.normal_num.set_alpha(255)
+                    self.button_hard.set_alpha(255)
+                    self.hard_diff.set_alpha(255)
+                    self.hard_num.set_alpha(255)
+                    self.button_master.set_alpha(255)
+                    self.master_diff.set_alpha(255)
+                    self.master_num.set_alpha(255)
                     self.hover_right = False
                     self.hover_left = False
                     self.hover_back = False
                     self.hover_info = False
+                    self.hover_easy = False
+                    self.hover_normal = False
+                    self.hover_hard = False
+                    self.hover_master = False
 
     def draw(self) -> None:
         self.ctx.Display.blit(self.bg, (0, 0))

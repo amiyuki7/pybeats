@@ -470,6 +470,13 @@ class App:
                     if self._state.hover_right or self._state.hover_left:
                         self.mixer.play_sfx(self.sfx.switch_button)
                         self._state.switch_map()
+                    elif (
+                        self._state.hover_easy
+                        or self._state.hover_normal
+                        or self._state.hover_hard
+                        or self._state.hover_master
+                    ):
+                        self._state.switch_difficulty()
                     elif self._state.hover_info:
                         self.mixer.play_sfx(self.sfx.info_in)
                         self._state.show_info()
