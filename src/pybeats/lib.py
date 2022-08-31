@@ -6,6 +6,14 @@ from .conf import Conf
 import toml
 from typing import Any, Dict, List
 from collections import OrderedDict
+from enum import Enum, auto
+
+
+class Difficulty(Enum):
+    Easy = auto()
+    Normal = auto()
+    Hard = auto()
+    Master = auto()
 
 
 def panic(content: str) -> str:
