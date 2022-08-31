@@ -257,7 +257,7 @@ class SongSelect(State):
         self.hover_right = False
         self.hover_left = False
         self.hover_back = False
-        self.hover_info = True
+        self.hover_info = False
         self.hover_out = False
         self.hover_easy = False
         self.hover_normal = False
