@@ -86,7 +86,8 @@ class SongSelect(State):
             self.info_button, (self.info_button.get_width() * scale, self.info_button.get_height() * scale)
         ).convert_alpha()
         self.info_button_rect = self.info_button.get_rect(center=self.ctx.Display.get_rect().center)
-        self.info_button_rect.y = self.frame_rect.y + self.frame_rect.height // 40 * 37
+        # self.info_button_rect.y = self.frame_rect.y + self.frame_rect.height // 40 * 38
+        self.info_button_rect.bottom = self.frame_rect.bottom + self.info_button_rect.height // 2
         self.info_button_rect.x = self.frame_rect.x + self.info_button_rect.width // 5 * 4
 
         # DIFFICULTY BUTTONS
@@ -131,8 +132,11 @@ class SongSelect(State):
         self.button_master_rect.x = self.button_hard_rect.x + self.button_easy_rect.width
         self.button_master_rect.y = self.button_easy_rect.y
 
-        self.diff_font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", 13)
-        self.num_font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", 30)
+        df_scale = self.ctx.SCREEN_HEIGHT // 41
+        nf_scale = self.ctx.SCREEN_HEIGHT // 18
+        self.diff_font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", df_scale)
+        self.num_font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", nf_scale)
+        self.num_font.set_bold(True)
         self.easy_diff = self.diff_font.render("Easy", True, (255, 255, 255))
         self.easy_diff_rect = self.easy_diff.get_rect(center=self.button_easy_rect.center)
         self.easy_diff_rect.top = self.button_easy_rect.top + self.easy_diff_rect.height // 4
@@ -160,6 +164,15 @@ class SongSelect(State):
         self.master_num = self.num_font.render(str(self.song_ref.difficulty.master), True, (255, 255, 255))
         self.master_num_rect = self.master_num.get_rect(center=self.button_master_rect.center)
         self.master_num_rect.centery = (self.button_master_rect.bottom + self.master_diff_rect.bottom) // 2
+
+        self.diff_arrow = self.ctx.image_cache["assets/diff_arrow.jpg"]
+        da_scale = self.ctx.SCREEN_WIDTH / 24 / self.diff_arrow.get_width()
+        self.diff_arrow = pg.transform.scale(
+            self.diff_arrow, (self.diff_arrow.get_width() * da_scale, self.diff_arrow.get_height() * da_scale)
+        ).convert_alpha()
+        self.diff_arrow_rect = self.diff_arrow.get_rect()
+        self.diff_arrow_rect.centerx = self.easy_diff_rect.centerx
+        self.diff_arrow_rect.y = self.easy_diff_rect.y - self.easy_diff_rect.height * 2
 
         # TODO: Implement proper on complete stuff, but for now use dummies
         self.diamond_easy = self.ctx.image_cache["assets/diamond_gray.jpg"]
@@ -572,6 +585,7 @@ class SongSelect(State):
         self.ctx.Display.blit(self.diamond_normal, self.diamond_normal_rect)
         self.ctx.Display.blit(self.diamond_hard, self.diamond_hard_rect)
         self.ctx.Display.blit(self.diamond_master, self.diamond_master_rect)
+        self.ctx.Display.blit(self.diff_arrow, self.diff_arrow_rect)
 
         if self.prev_img:
             # Gradually draw the next song's lite_img over the old one
