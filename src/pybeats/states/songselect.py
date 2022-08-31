@@ -45,7 +45,7 @@ class SongSelect(State):
             self.frame, (self.frame.get_width() * scale, self.frame.get_height() * scale)
         ).convert_alpha()
         self.frame_rect = self.frame.get_rect(center=self.ctx.Display.get_rect().center)
-        self.frame_rect.y = self.ctx.SCREEN_HEIGHT // 15
+        self.frame_rect.y = self.ctx.SCREEN_HEIGHT // 20
 
         self.frame.set_alpha(255)
 
@@ -80,6 +80,125 @@ class SongSelect(State):
         self.lmap_button_rect.x = self.ctx.SCREEN_WIDTH // 10
         self.lmap_button_rect.centery = self.frame_rect.centery
 
+        self.info_button = self.ctx.image_cache["assets/info_icon.jpg"]
+        scale = self.ctx.SCREEN_WIDTH * 0.05 / self.info_button.get_width()
+        self.info_button = pg.transform.scale(
+            self.info_button, (self.info_button.get_width() * scale, self.info_button.get_height() * scale)
+        ).convert_alpha()
+        self.info_button_rect = self.info_button.get_rect(center=self.ctx.Display.get_rect().center)
+        self.info_button_rect.y = self.frame_rect.y + self.frame_rect.height // 40 * 37
+        self.info_button_rect.x = self.frame_rect.x + self.info_button_rect.width // 5 * 4
+
+        # DIFFICULTY BUTTONS
+        # gray -> not attempted
+        # green -> clear
+        # pink -> full combo
+        # blue/purple -> all perfect
+        self.button_easy = self.ctx.image_cache["assets/button_easy.jpg"]
+        button_scale = self.frame_rect.width * 0.25 / self.button_easy.get_width()
+        self.button_easy = pg.transform.scale(
+            self.button_easy,
+            (self.button_easy.get_width() * button_scale, self.button_easy.get_height() * button_scale),
+        ).convert_alpha()
+        self.button_easy_rect = self.button_easy.get_rect(center=self.ctx.Display.get_rect().center)
+        self.button_easy_rect.left = self.frame_rect.left
+        self.button_easy_rect.y = floor(self.info_button_rect.y + self.info_button_rect.height * 1.8)
+
+        self.button_normal = self.ctx.image_cache["assets/button_normal.jpg"]
+        self.button_normal = pg.transform.scale(
+            self.button_normal,
+            (self.button_normal.get_width() * button_scale, self.button_normal.get_height() * button_scale),
+        ).convert_alpha()
+        self.button_normal_rect = self.button_normal.get_rect()
+        self.button_normal_rect.x = self.button_easy_rect.x + self.button_easy_rect.width
+        self.button_normal_rect.y = self.button_easy_rect.y
+
+        self.button_hard = self.ctx.image_cache["assets/button_hard.jpg"]
+        self.button_hard = pg.transform.scale(
+            self.button_hard,
+            (self.button_hard.get_width() * button_scale, self.button_hard.get_height() * button_scale),
+        ).convert_alpha()
+        self.button_hard_rect = self.button_hard.get_rect()
+        self.button_hard_rect.x = self.button_normal_rect.x + self.button_easy_rect.width
+        self.button_hard_rect.y = self.button_easy_rect.y
+
+        self.button_master = self.ctx.image_cache["assets/button_master.jpg"]
+        self.button_master = pg.transform.scale(
+            self.button_master,
+            (self.button_master.get_width() * button_scale, self.button_master.get_height() * button_scale),
+        ).convert_alpha()
+        self.button_master_rect = self.button_master.get_rect()
+        self.button_master_rect.x = self.button_hard_rect.x + self.button_easy_rect.width
+        self.button_master_rect.y = self.button_easy_rect.y
+
+        self.diff_font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", 13)
+        self.num_font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", 30)
+        self.easy_diff = self.diff_font.render("Easy", True, (255, 255, 255))
+        self.easy_diff_rect = self.easy_diff.get_rect(center=self.button_easy_rect.center)
+        self.easy_diff_rect.top = self.button_easy_rect.top + self.easy_diff_rect.height // 4
+        self.easy_num = self.num_font.render(str(self.song_ref.difficulty.easy), True, (255, 255, 255))
+        self.easy_num_rect = self.easy_num.get_rect(center=self.button_easy_rect.center)
+        self.easy_num_rect.centery = (self.button_easy_rect.bottom + self.easy_diff_rect.bottom) // 2
+
+        self.normal_diff = self.diff_font.render("Normal", True, (255, 255, 255))
+        self.normal_diff_rect = self.normal_diff.get_rect(center=self.button_normal_rect.center)
+        self.normal_diff_rect.top = self.button_normal_rect.top + self.normal_diff_rect.height // 4
+        self.normal_num = self.num_font.render(str(self.song_ref.difficulty.normal), True, (255, 255, 255))
+        self.normal_num_rect = self.normal_num.get_rect(center=self.button_normal_rect.center)
+        self.normal_num_rect.centery = (self.button_normal_rect.bottom + self.normal_diff_rect.bottom) // 2
+
+        self.hard_diff = self.diff_font.render("Hard", True, (255, 255, 255))
+        self.hard_diff_rect = self.hard_diff.get_rect(center=self.button_hard_rect.center)
+        self.hard_diff_rect.top = self.button_hard_rect.top + self.hard_diff_rect.height // 4
+        self.hard_num = self.num_font.render(str(self.song_ref.difficulty.hard), True, (255, 255, 255))
+        self.hard_num_rect = self.hard_num.get_rect(center=self.button_hard_rect.center)
+        self.hard_num_rect.centery = (self.button_hard_rect.bottom + self.hard_diff_rect.bottom) // 2
+
+        self.master_diff = self.diff_font.render("Master", True, (255, 255, 255))
+        self.master_diff_rect = self.master_diff.get_rect(center=self.button_master_rect.center)
+        self.master_diff_rect.top = self.button_master_rect.top + self.master_diff_rect.height // 4
+        self.master_num = self.num_font.render(str(self.song_ref.difficulty.master), True, (255, 255, 255))
+        self.master_num_rect = self.master_num.get_rect(center=self.button_master_rect.center)
+        self.master_num_rect.centery = (self.button_master_rect.bottom + self.master_diff_rect.bottom) // 2
+
+        # TODO: Implement proper on complete stuff, but for now use dummies
+        self.diamond_easy = self.ctx.image_cache["assets/diamond_gray.jpg"]
+        diamond_scale = self.ctx.SCREEN_HEIGHT / 18 / self.diamond_easy.get_height()
+        self.diamond_easy = pg.transform.scale(
+            self.diamond_easy,
+            (self.diamond_easy.get_width() * diamond_scale, self.diamond_easy.get_height() * diamond_scale),
+        ).convert_alpha()
+        self.diamond_easy_rect = self.diamond_easy.get_rect()
+        self.diamond_easy_rect.centerx = self.button_easy_rect.centerx
+        self.diamond_easy_rect.y = floor(self.button_easy_rect.y + self.button_easy_rect.height * 1.1)
+
+        self.diamond_normal = self.ctx.image_cache["assets/diamond_green.jpg"]
+        self.diamond_normal = pg.transform.scale(
+            self.diamond_normal,
+            (self.diamond_normal.get_width() * diamond_scale, self.diamond_normal.get_width() * diamond_scale),
+        ).convert_alpha()
+        self.diamond_normal_rect = self.diamond_normal.get_rect()
+        self.diamond_normal_rect.centerx = self.button_normal_rect.centerx
+        self.diamond_normal_rect.y = floor(self.button_normal_rect.y + self.button_normal_rect.height * 1.1)
+
+        self.diamond_hard = self.ctx.image_cache["assets/diamond_pink.jpg"]
+        self.diamond_hard = pg.transform.scale(
+            self.diamond_hard,
+            (self.diamond_hard.get_width() * diamond_scale, self.diamond_hard.get_height() * diamond_scale),
+        ).convert_alpha()
+        self.diamond_hard_rect = self.diamond_hard.get_rect()
+        self.diamond_hard_rect.centerx = self.button_hard_rect.centerx
+        self.diamond_hard_rect.y = floor(self.button_hard_rect.y + self.button_hard_rect.height * 1.1)
+
+        self.diamond_master = self.ctx.image_cache["assets/diamond_prismatic.jpg"]
+        self.diamond_master = pg.transform.scale(
+            self.diamond_master,
+            (self.diamond_master.get_width() * diamond_scale, self.diamond_master.get_height() * diamond_scale),
+        ).convert_alpha()
+        self.diamond_master_rect = self.diamond_master.get_rect()
+        self.diamond_master_rect.centerx = self.button_master_rect.centerx
+        self.diamond_master_rect.y = floor(self.button_master_rect.y + self.button_master_rect.height * 1.1)
+
         self.back_button = self.ctx.image_cache["assets/back_icon.jpg"]
         scale = self.ctx.SCREEN_WIDTH * 0.05 / self.back_button.get_width()
         self.back_button = pg.transform.scale(
@@ -87,14 +206,6 @@ class SongSelect(State):
         ).convert_alpha()
         self.back_button_rect = self.back_button.get_rect()
         self.back_button_rect.x = self.back_button_rect.y = 10
-
-        self.info_button = self.ctx.image_cache["assets/info_icon.jpg"]
-        self.info_button = pg.transform.scale(
-            self.info_button, (self.info_button.get_width() * scale, self.info_button.get_height() * scale)
-        ).convert_alpha()
-        self.info_button_rect = self.info_button.get_rect(center=self.ctx.Display.get_rect().center)
-        self.info_button_rect.y = self.frame_rect.y + self.frame_rect.height // 40 * 37
-        self.info_button_rect.x = self.frame_rect.x + self.info_button_rect.width // 5 * 4
 
         self.info_overlay = Surface((self.ctx.SCREEN_WIDTH, self.ctx.SCREEN_HEIGHT))
         self.info_overlay.set_alpha(0)
@@ -192,6 +303,23 @@ class SongSelect(State):
         self.song_text.set_alpha(200)
         self.song_text_rect = self.song_text.get_rect(center=self.ctx.Display.get_rect().center)
         self.song_text_rect.centery = self.info_button_rect.centery
+
+        self.easy_diff = self.diff_font.render("Easy", True, (255, 255, 255))
+        self.easy_num = self.num_font.render(str(self.song_ref.difficulty.easy), True, (255, 255, 255))
+        self.easy_num_rect = self.easy_num.get_rect(center=self.button_easy_rect.center)
+        self.easy_num_rect.centery = (self.button_easy_rect.bottom + self.easy_diff_rect.bottom) // 2
+        self.normal_diff = self.diff_font.render("Normal", True, (255, 255, 255))
+        self.normal_num = self.num_font.render(str(self.song_ref.difficulty.normal), True, (255, 255, 255))
+        self.normal_num_rect = self.normal_num.get_rect(center=self.button_normal_rect.center)
+        self.normal_num_rect.centery = (self.button_normal_rect.bottom + self.normal_diff_rect.bottom) // 2
+        self.hard_diff = self.diff_font.render("Hard", True, (255, 255, 255))
+        self.hard_num = self.num_font.render(str(self.song_ref.difficulty.hard), True, (255, 255, 255))
+        self.hard_num_rect = self.hard_num.get_rect(center=self.button_hard_rect.center)
+        self.hard_num_rect.centery = (self.button_hard_rect.bottom + self.hard_diff_rect.bottom) // 2
+        self.master_diff = self.diff_font.render("Master", True, (255, 255, 255))
+        self.master_num = self.num_font.render(str(self.song_ref.difficulty.master), True, (255, 255, 255))
+        self.master_num_rect = self.master_num.get_rect(center=self.button_master_rect.center)
+        self.master_num_rect.centery = (self.button_master_rect.bottom + self.master_diff_rect.bottom) // 2
 
         # Change the previewing song
         self.ctx.mixer.load(f"{ROOT_DIR}/{self.song_ref.lite_song_path}")
@@ -428,6 +556,22 @@ class SongSelect(State):
         self.ctx.Display.blit(self.info_button, self.info_button_rect)
         self.ctx.Display.blit(self.song_text, self.song_text_rect)
         self.ctx.Display.blit(self.back_button, self.back_button_rect)
+        self.ctx.Display.blit(self.button_easy, self.button_easy_rect)
+        self.ctx.Display.blit(self.easy_diff, self.easy_diff_rect)
+        self.ctx.Display.blit(self.easy_num, self.easy_num_rect)
+        self.ctx.Display.blit(self.button_normal, self.button_normal_rect)
+        self.ctx.Display.blit(self.normal_diff, self.normal_diff_rect)
+        self.ctx.Display.blit(self.normal_num, self.normal_num_rect)
+        self.ctx.Display.blit(self.button_hard, self.button_hard_rect)
+        self.ctx.Display.blit(self.hard_diff, self.hard_diff_rect)
+        self.ctx.Display.blit(self.hard_num, self.hard_num_rect)
+        self.ctx.Display.blit(self.button_master, self.button_master_rect)
+        self.ctx.Display.blit(self.master_diff, self.master_diff_rect)
+        self.ctx.Display.blit(self.master_num, self.master_num_rect)
+        self.ctx.Display.blit(self.diamond_easy, self.diamond_easy_rect)
+        self.ctx.Display.blit(self.diamond_normal, self.diamond_normal_rect)
+        self.ctx.Display.blit(self.diamond_hard, self.diamond_hard_rect)
+        self.ctx.Display.blit(self.diamond_master, self.diamond_master_rect)
 
         if self.prev_img:
             # Gradually draw the next song's lite_img over the old one
