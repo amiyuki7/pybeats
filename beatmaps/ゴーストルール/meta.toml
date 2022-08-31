@@ -27,6 +27,18 @@ hard = 19
 # expert = 26
 master = 26
 
+[diamond]
+easy = "NA"
+normal = "NA"
+hard = "AP"
+master = "FC"
+
+[grade]
+easy = "C"
+normal = "C"
+hard = "S"
+master = "S"
+
 # Normal mode
 [notes]
 1=[{l=1, w=1, t='t'}]

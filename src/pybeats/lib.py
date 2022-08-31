@@ -4,7 +4,7 @@ import colorama
 
 from .conf import Conf
 import toml
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Type, Literal
 from collections import OrderedDict
 from enum import Enum, auto
 
@@ -110,6 +110,24 @@ class SongData:
             master: int = __o["master"]
 
         self.difficulty = Difficulty
+
+        class Diamond:
+            __o = o["diamond"]
+            easy: Literal["AP", "FC", "CL", "NA"] = __o["easy"]
+            normal: Literal["AP", "FC", "CL", "NA"] = __o["normal"]
+            hard: Literal["AP", "FC", "CL", "NA"] = __o["hard"]
+            master: Literal["AP", "FC", "CL", "NA"] = __o["master"]
+
+        self.diamond = Diamond
+
+        class Grade:
+            __o = o["grade"]
+            easy: Literal["C", "B", "A", "S"] = __o["easy"]
+            normal: Literal["C", "B", "A", "S"] = __o["normal"]
+            hard: Literal["C", "B", "A", "S"] = __o["hard"]
+            master: Literal["C", "B", "A", "S"] = __o["master"]
+
+        self.grade = Grade
 
         notes = o["notes"]
 

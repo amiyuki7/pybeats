@@ -27,6 +27,18 @@ hard = 17
 # expert = 23
 master = 23
 
+[diamond]
+easy = "NA"
+normal = "NA"
+hard = "AP"
+master = "FC"
+
+[grade]
+easy = "C"
+normal = "C"
+hard = "S"
+master = "S"
+
 # Normal mode
 [notes]
 #1
