@@ -39,8 +39,10 @@ normal = "C"
 hard = "S"
 master = "S"
 
-# Normal mode
-[notes]
+[map_easy]
+1=[{l=1, w=1, t='t'}]
+
+[map_normal]
 #1
 2=[{l=3, w=2, t='fc'}]
 #2
@@ -145,12 +147,8 @@ master = "S"
 406=[{l=2, w=2, t='f'}, {l=6, w=2, t='f'}]
 410=[{l=2, w=2, t='f'}, {l=6, w=2, t='f'}]
 
+[map_hard]
+1=[{l=1, w=1, t='t'}]
 
-# # Declarative format:
-# beat = [{ lane|l=int, width|w=int, type|t=str, len|ln=int? }, ...]
-# # e.g.
-# 88 = [{ l=3, w=2, t='fc' }, { l=8, w=1, t='h', ln=14 }]
-# # Fast format:
-# beat = "lane|width|type|len?,..."
-# # e.g.
-# 88 = "32fc,81h14"
+[map_master]
+1=[{l=1, w=1, t='t'}]

@@ -129,12 +129,29 @@ class SongData:
 
         self.grade = Grade
 
-        notes = o["notes"]
+        easy = o["map_easy"]
+        for k, v in easy.items():
+            easy[k] = [Note(note) for note in v]
 
-        for k, v in notes.items():
-            notes[k] = [Note(note) for note in v]
+        self.map_easy: NoteData = NoteData(easy)
 
-        self.note_data: NoteData = NoteData(notes)
+        normal = o["map_normal"]
+        for k, v in normal.items():
+            normal[k] = [Note(note) for note in v]
+
+        self.map_normal: NoteData = NoteData(normal)
+
+        hard = o["map_hard"]
+        for k, v in hard.items():
+            hard[k] = [Note(note) for note in v]
+
+        self.map_hard: NoteData = NoteData(hard)
+
+        master = o["map_master"]
+        for k, v in master.items():
+            master[k] = [Note(note) for note in v]
+
+        self.map_master: NoteData = NoteData(master)
 
 
 def fetch_song_data(song: str) -> SongData:

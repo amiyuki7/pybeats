@@ -39,6 +39,14 @@ normal = "C"
 hard = "S"
 master = "S"
 
-# Normal mode
-[notes]
+[map_easy]
+1=[{l=1, w=1, t='t'}]
+
+[map_normal]
+1=[{l=1, w=1, t='t'}]
+
+[map_hard]
+1=[{l=1, w=1, t='t'}]
+
+[map_master]
 1=[{l=1, w=1, t='t'}]
