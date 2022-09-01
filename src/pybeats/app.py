@@ -225,17 +225,6 @@ class State(ABC):
         ...
 
 
-class InGame(State):
-    def __init__(self, ctx: App) -> None:
-        super().__init__(ctx)
-
-    def update(self) -> None:
-        return super().update()
-
-    def draw(self) -> None:
-        return super().draw()
-
-
 class FadeOverlay:
     """
     This is probably 'overcoded' but it works...
@@ -315,6 +304,7 @@ class FadeOverlay:
 from .states.loading import Loading
 from .states.menu import Menu
 from .states.songselect import SongSelect
+from .states.ingame import InGame
 
 
 class App:
@@ -489,6 +479,9 @@ class App:
                         self.mixer.unload()
                         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
                         self.mixer.play()
+                    elif self._state.hover_play:
+                        self.mixer.play_sfx(self.sfx.play_game)
+                        self._state.play = True
 
     def manage_states(self) -> None:
         if type(self._state) is Loading and self._state.load_task(self.load_cache):
@@ -499,6 +492,8 @@ class App:
 
         if type(self._state) is SongSelect and self._state.back:
             self.fader.fade_to_state(Menu)
+        elif type(self._state) is SongSelect and self._state.play:
+            self.fader.fade_to_state(InGame)
 
     def run(self) -> None:
         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
