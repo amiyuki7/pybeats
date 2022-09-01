@@ -247,10 +247,12 @@ class SongSelect(State):
         self.hover_normal = False
         self.hover_hard = False
         self.hover_master = False
+        self.hover_play = False
 
         self.difficulty: Difficulty = Difficulty.Normal
 
         self.back = False
+        self.play = False
 
         self.phase_info = False
         self.unphase_info = False
@@ -598,7 +600,7 @@ class SongSelect(State):
                     y,
                 ) if self.back_button_rect.left < x < self.back_button_rect.right and self.back_button_rect.top < y < self.back_button_rect.bottom and (
                     self.back_button.get_at([x - self.back_button_rect.x, y - self.back_button_rect.y])[3] > 0
-                ):
+                ) and not self.play:
                     self.back_button.set_alpha(100)
                     self.hover_back = True
                 case (
@@ -615,7 +617,7 @@ class SongSelect(State):
                     y,
                 ) if self.frame_rect.left < x < self.frame_rect.right and self.frame_rect.top < y < self.frame_rect.bottom and (
                     self.lite_img.get_at([x - self.frame_rect.x, y - self.frame_rect.y])[3] > 0
-                ):
+                ) and not self.back:
                     self.lite_img = self.load_lite_img()
 
                     if self.difficulty == Difficulty.Easy:
@@ -626,6 +628,8 @@ class SongSelect(State):
                         self.lite_img.fill((50, 0, 30), special_flags=pg.BLEND_ADD)
                     elif self.difficulty == Difficulty.Master:
                         self.lite_img.fill((30, 0, 50), special_flags=pg.BLEND_ADD)
+
+                    self.hover_play = True
                 # Difficulty buttons
                 case (
                     x,
@@ -733,6 +737,7 @@ class SongSelect(State):
                     self.hover_normal = False
                     self.hover_hard = False
                     self.hover_master = False
+                    self.hover_play = False
 
     def draw(self) -> None:
         self.ctx.Display.blit(self.bg, (0, 0))
