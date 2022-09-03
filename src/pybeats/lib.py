@@ -64,11 +64,11 @@ class Note:
 class NoteData:
     def __init__(self, notes) -> None:
         self.notes: Dict[str, List[Note]] = OrderedDict(notes)
-        self.__notes_iter = iter(self.notes)
+        # self.__notes_iter = iter(self.notes)
 
-    @property
-    def next_note_beat(self) -> str:
-        return next(self.__notes_iter)
+    # @property
+    # def next_note_beat(self) -> str:
+    #     return next(self.__notes_iter)
 
 
 class SongData:

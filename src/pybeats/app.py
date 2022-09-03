@@ -88,7 +88,11 @@ class Conductor:
         self.played: bool = False
 
         self.note_data = note_data
-        self.next_note = note_data.next_note_beat
+        self.__notes_iter = iter(self.note_data.notes)
+
+    @property
+    def next_note_beat(self) -> str:
+        return next(self.__notes_iter)
 
     def update(self) -> None:
         self.pos = mixer.music.get_pos()
@@ -485,7 +489,6 @@ class App:
                     elif self._state.hover_play:
                         self.mixer.play_sfx(self.sfx.play_game)
 
-                        self.video = Video(self, self._state.song_ref.mv.frames_path, self._state.song_ref.image_name)
                         match self._state.difficulty:
                             case Difficulty.Easy:
                                 notes = self._state.song_ref.map_easy
@@ -496,6 +499,7 @@ class App:
                             case Difficulty.Master:
                                 notes = self._state.song_ref.map_master
 
+                        self.conductor = None
                         self.conductor = Conductor(
                             self, self._state.song_ref.bpm_semiquaver, self._state.song_ref.name, notes
                         )
@@ -503,8 +507,13 @@ class App:
                         # Ensure the map actually has been created; i.e. there's more than the boilerplate note
                         if not len(self.conductor.note_data.notes) > 1:
                             print("This beatmap doesn't exist yet!")
+                            self.conductor = None
                             return
 
+                        # TODO: Add the background video and an option for that to be toggled
+                        # self.video = Video(self, self._state.song_ref.mv.frames_path, self._state.song_ref.image_name)
+
+                        self.mixer.unload()
                         self._state.play = True
 
     def manage_states(self) -> None:
@@ -516,8 +525,8 @@ class App:
 
         if type(self._state) is SongSelect and self._state.back:
             self.fader.fade_to_state(Menu)
-        # elif type(self._state) is SongSelect and self._state.play:
-        #     self.fader.fade_to_state(InGame)
+        elif type(self._state) is SongSelect and self._state.play:
+            self.fader.fade_to_state(InGame)
 
     def run(self) -> None:
         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
