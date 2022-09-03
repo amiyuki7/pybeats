@@ -1,5 +1,6 @@
 name = "ド屑"
 name_en = "DOKUZU"
+image_name = "dokuzu"
 prod = "なきそ"
 prod_en = "NAKISO"
 song_path = "beatmaps/ド屑/ド屑.mp3"

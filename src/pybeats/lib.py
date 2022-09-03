@@ -75,6 +75,7 @@ class SongData:
     def __init__(self, o: Dict[str, Any]) -> None:
         self.name: str = o["name"]
         self.name_en: str = o["name_en"]
+        self.image_name: str = o["image_name"]
         self.prod: str = o["prod"]
         self.prod_en: str = o["prod_en"]
         self.song_path: str = o["song_path"]

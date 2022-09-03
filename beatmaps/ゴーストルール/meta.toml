@@ -1,5 +1,6 @@
 name = "ゴーストルール"
 name_en = "Ghost Rule"
+image_name = "ghostrule"
 prod = "DECO*27"
 prod_en = "DECO*27"
 song_path = "beatmaps/ゴーストルール/ゴーストルール.mp3"

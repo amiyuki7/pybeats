@@ -12,7 +12,7 @@ from pygame import font, mixer
 from pygame.surface import Surface
 
 from .conf import Conf
-from .lib import NoteData, SongData, fetch_song_data, panic, screen_res
+from .lib import Difficulty, NoteData, SongData, fetch_song_data, panic, screen_res
 
 pg.init()
 
@@ -135,7 +135,7 @@ class Conductor:
 class Video:
     def __init__(self, ctx: App, rpath: str, image_name: str) -> None:
         self.ctx = ctx
-        self.frames_path = rpath
+        self.frames_path = f"{ROOT_DIR}/{rpath}"
         self.image_name = image_name
 
         self.frames: Dict[int, Surface] = {}
@@ -344,6 +344,9 @@ class App:
 
     maps: List[Video]
 
+    video: Optional[Video] = None
+    conductor: Optional[Conductor] = None
+
     def __init__(self, init_state: Type[State]) -> None:
         self.HoldChannel = mixer.Channel(1)
         self.HoldHeadChannel = mixer.Channel(2)
@@ -388,9 +391,9 @@ class App:
 
         self.fader = FadeOverlay(ctx=self, mode=None)
 
-        self.maps = [
-            Video(ctx=self, rpath=f"{ROOT_DIR}/beatmaps/ド屑/frames/", image_name="dokuzu"),
-        ]
+        # self.maps = [
+        #     Video(ctx=self, rpath=f"{ROOT_DIR}/beatmaps/ド屑/frames/", image_name="dokuzu"),
+        # ]
 
         self.cursor = pg.image.load(f"{ROOT_DIR}/assets/cursor.jpg").convert_alpha()
         cursor_scale = self.cursor.get_width() / 40
@@ -481,6 +484,27 @@ class App:
                         self.mixer.play()
                     elif self._state.hover_play:
                         self.mixer.play_sfx(self.sfx.play_game)
+
+                        self.video = Video(self, self._state.song_ref.mv.frames_path, self._state.song_ref.image_name)
+                        match self._state.difficulty:
+                            case Difficulty.Easy:
+                                notes = self._state.song_ref.map_easy
+                            case Difficulty.Normal:
+                                notes = self._state.song_ref.map_normal
+                            case Difficulty.Hard:
+                                notes = self._state.song_ref.map_hard
+                            case Difficulty.Master:
+                                notes = self._state.song_ref.map_master
+
+                        self.conductor = Conductor(
+                            self, self._state.song_ref.bpm_semiquaver, self._state.song_ref.name, notes
+                        )
+
+                        # Ensure the map actually has been created; i.e. there's more than the boilerplate note
+                        if not len(self.conductor.note_data.notes) > 1:
+                            print("This beatmap doesn't exist yet!")
+                            return
+
                         self._state.play = True
 
     def manage_states(self) -> None:
@@ -492,8 +516,8 @@ class App:
 
         if type(self._state) is SongSelect and self._state.back:
             self.fader.fade_to_state(Menu)
-        elif type(self._state) is SongSelect and self._state.play:
-            self.fader.fade_to_state(InGame)
+        # elif type(self._state) is SongSelect and self._state.play:
+        #     self.fader.fade_to_state(InGame)
 
     def run(self) -> None:
         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
