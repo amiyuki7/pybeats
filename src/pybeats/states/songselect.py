@@ -457,6 +457,7 @@ class SongSelect(State):
             self.info_prod_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 1.5)
 
             self.info_labels_text = self.info_font.render("【C. Vocal】    【Vocaloid】", True, (50, 50, 50))
+            # self.info_labels_text = self.info_font.render("  【Singer】      【Vocaloid】", True, (50, 50, 50))
             self.info_labels_text_rect = self.info_labels_text.get_rect()
             self.info_labels_text_rect.centerx = self.info_pad_rect.centerx
             self.info_labels_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 2.5)

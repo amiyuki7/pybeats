@@ -8,7 +8,6 @@ from typing import Dict, List, Literal, Optional, Tuple, Type
 
 import pygame as pg
 from pygame import font, mixer
-
 from pygame.surface import Surface
 
 from .conf import Conf
@@ -19,6 +18,7 @@ pg.init()
 mixer.pre_init(Conf.SOUND_BUFFER_SIZE)
 mixer.set_reserved(1)
 mixer.set_reserved(2)
+mixer.set_reserved(3)
 mixer.set_num_channels(Conf.MIXER_CHANNELS)
 
 font.init()
@@ -33,16 +33,16 @@ class MixerWrapper:
         self.paused: bool = False
         self.playing: bool = False
 
-    # def toggle_pause(self) -> None:
-    #     if self.playing:
-    #         if self.paused:
-    #             mixer.music.unpause()
-    #         else:
-    #             mixer.music.pause()
-    #             self.paused = True
-    #     else:
-    #         mixer.music.play()
-    #         self.playing = True
+    def toggle_pause(self) -> None:
+        if self.playing:
+            if self.paused:
+                mixer.music.unpause()
+            else:
+                mixer.music.pause()
+                self.paused = True
+        else:
+            mixer.music.play()
+            self.playing = True
 
     @staticmethod
     def load(song_file: str) -> None:
@@ -99,41 +99,40 @@ class Conductor:
 
         if (note_list := self.note_data.notes.get(str(self.beat_count - 1))) and not self.played:
             # Debug
-            print(list(map(lambda note: note.type, note_list)))
+            print(list(map(lambda note: note.type, note_list)), self.beat_count)
 
-            for note in note_list:
-                self.play_sound(note.type, note.length)
+            num_notes = len(note_list)
+
+            # Number of channels required for this beat
+            channels: List[mixer.Channel] = []
+            for _ in range(num_notes):
+                channels.append(mixer.find_channel())
+
+            # Play multiple notes simultaneously
+            for i, note in enumerate(note_list):
+                match note.type:
+                    case "t":
+                        channels[i].play(self.ctx.sfx.tap_perfect)
+                    case "tc":
+                        channels[i].play(self.ctx.sfx.tap_crit)
+                    case "f":
+                        channels[i].play(self.ctx.sfx.flair)
+                    case "fc":
+                        channels[i].play(self.ctx.sfx.flair_crit)
+                    case "h":
+                        # TODO: For now there will only be one hold note at a time, but figure out how to distribute channels for multiple holds later
+                        self.ctx.HoldHeadChannel.play(self.ctx.sfx.tap_perfect)
+                        self.ctx.HoldChannel.play(
+                            mixer.Sound(f"{ROOT_DIR}/beatmaps/{self.song}/holdbeats/hold_{note_list[0].length}.wav")
+                        )
+                    case "hr":
+                        channels[i].play(self.ctx.sfx.tap_perfect)
 
             self.played = True
 
         if self.pos >= (self.beat_count) * self.sec_per_beat * 1000:
             self.beat_count += 1
             self.played = False
-
-    def play_sound(self, note_type: str, length: Optional[int]) -> None:
-        match note_type:
-            case "t":
-                self.ctx.mixer.play_sfx(self.ctx.sfx.tap_perfect)
-            case "tc":
-                self.ctx.mixer.play_sfx(self.ctx.sfx.tap_crit)
-            case "f":
-                self.ctx.mixer.play_sfx(self.ctx.sfx.flair)
-            case "fc":
-                self.ctx.mixer.play_sfx(self.ctx.sfx.flair_crit)
-            case "h":
-                self.ctx.mixer.play_sfx(self.ctx.sfx.tap_perfect, self.ctx.HoldHeadChannel)
-                self.ctx.mixer.play_sfx(
-                    mixer.Sound(f"{ROOT_DIR}/beatmaps/{self.song}/holdbeats/hold_{length}.wav"),
-                    self.ctx.HoldChannel,
-                )
-            case "hr":
-                self.ctx.mixer.play_sfx(self.ctx.sfx.tap_perfect)
-            case other:
-                """
-                This panic will only occur when there's a value in the `t` field of a note in a
-                beatmap's `meta.toml` that doesn't correspond with: 't'|'tc'|'f'|'fc'|'h'|'hr'
-                """
-                raise Exception(panic(f"Bad beatmap config: Unknown note type, found {other}"))
 
 
 class Video:
@@ -305,10 +304,10 @@ class FadeOverlay:
         self.has_toggled_mode = True
 
 
+from .states.ingame import InGame
 from .states.loading import Loading
 from .states.menu import Menu
 from .states.songselect import SongSelect
-from .states.ingame import InGame
 
 
 class App:
@@ -354,6 +353,7 @@ class App:
     def __init__(self, init_state: Type[State]) -> None:
         self.HoldChannel = mixer.Channel(1)
         self.HoldHeadChannel = mixer.Channel(2)
+        self.LeadPauseChannel = mixer.Channel(3)
 
         self.SCREEN_WIDTH, self.SCREEN_HEIGHT = screen_res(pg.display.Info())
 
@@ -391,13 +391,12 @@ class App:
             info_in = mixer.Sound(f"{SFX_DIR}/info_in2.wav")
             info_out = mixer.Sound(f"{SFX_DIR}/info_out2.wav")
 
+            # Not a sound effect, just a 5 second pause before a beatmap starts
+            lead_pause = mixer.Sound(f"{SFX_DIR}/lead_pause.wav")
+
         self.sfx = Sfx
 
         self.fader = FadeOverlay(ctx=self, mode=None)
-
-        # self.maps = [
-        #     Video(ctx=self, rpath=f"{ROOT_DIR}/beatmaps/ド屑/frames/", image_name="dokuzu"),
-        # ]
 
         self.cursor = pg.image.load(f"{ROOT_DIR}/assets/cursor.jpg").convert_alpha()
         cursor_scale = self.cursor.get_width() / 40
@@ -453,7 +452,8 @@ class App:
                 sys.exit()
             if event.type == pg.KEYDOWN:
                 self.check_keys()
-            if event.type == pg.MOUSEBUTTONDOWN:
+            # 1 => Left click
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 if type(self._state) is Menu:
                     if self._state.hover_options:
                         # Debug
@@ -486,7 +486,7 @@ class App:
                         self.mixer.unload()
                         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
                         self.mixer.play()
-                    elif self._state.hover_play:
+                    elif self._state.hover_play and not self._state.play:
                         self.mixer.play_sfx(self.sfx.play_game)
 
                         match self._state.difficulty:
@@ -540,7 +540,9 @@ class App:
             self.fader.update()
 
             self.cursor_rect = self.cursor.get_rect(center=pg.mouse.get_pos())
-            self.Display.blit(self.cursor, self.cursor_rect)
+
+            if type(self._state) is not InGame:
+                self.Display.blit(self.cursor, self.cursor_rect)
 
             pg.display.update()
             self.Clock.tick(Conf.TARGET_FPS)

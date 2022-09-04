@@ -7,7 +7,7 @@ class Conf:
 
     SOUND_BUFFER_SIZE = 1024
 
-    MIXER_CHANNELS = 16
+    MIXER_CHANNELS = 32
 
     TARGET_FPS = 60
 
