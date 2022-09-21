@@ -154,7 +154,6 @@ class InGame(State):
         self.relative_speed = floor(self.travel_dist / (457 / self.new_note_speed))
         self.time_frames = self.travel_dist / self.relative_speed
 
-        # self.notes: List[NoteObject] = []
         self.notes: List[List[NoteObject]] = []
         self.next_note_beat: int = 0
 
@@ -166,6 +165,81 @@ class InGame(State):
         self.dead_sliders: List[int] = []
 
         self.combo = 0
+        self.c_perfect = 0
+        self.c_great = 0
+        self.c_early = 0
+        self.c_miss = 0
+
+        self.accuracy = 0.0
+        self.rank = "C"
+        self.rank_color = (150, 150, 150)
+
+        self.accuracy_font_scale = 15
+        self.accuracy_font = font.Font(
+            f"{ROOT_DIR}/fonts/Mylodon-Light.otf", self.ctx.SCREEN_HEIGHT // self.accuracy_font_scale
+        )
+        self.accuracy_text = self.accuracy_font.render(f"{self.accuracy:0.2f}%", True, (255, 255, 255))
+        self.accuracy_text_rect = self.accuracy_text.get_rect()
+        self.accuracy_text_rect.topright = self.ctx.Display.get_rect().topright
+
+        self.rank_font = font.Font(
+            f"{ROOT_DIR}/fonts/Mylodon-Light.otf", self.ctx.SCREEN_HEIGHT // self.accuracy_font_scale
+        )
+        self.rank_font.set_bold(True)
+        self.rank_font.set_italic(True)
+        self.rank_text = self.rank_font.render(self.rank, True, self.rank_color)
+        self.rank_text_rect = self.rank_text.get_rect()
+        self.rank_text_rect.topright = self.accuracy_text_rect.bottomright
+        self.rank_text_rect.right -= self.rank_text_rect.width // 2
+        self.accuracy_text_rect.right = self.rank_text_rect.right
+
+        self.combo_font_scale = 10
+        self.combo_font = font.Font(
+            f"{ROOT_DIR}/fonts/Mylodon-Light.otf", self.ctx.SCREEN_HEIGHT // self.combo_font_scale
+        )
+        self.combo_text = self.combo_font.render(str(self.combo), True, (255, 255, 255))
+        self.combo_text_rect = self.combo_text.get_rect()
+        self.combo_text_rect.centery = self.ctx.Display.get_rect().centery
+        self.combo_text_rect.centerx = floor(
+            self.ctx.SCREEN_WIDTH - (self.ctx.SCREEN_WIDTH - self.lanes[-1].rect.right) / 2
+        )
+
+        self.grade_font_scale = 23
+        self.grade_font = font.Font(
+            f"{ROOT_DIR}/fonts/Mylodon-Light.otf", self.ctx.SCREEN_HEIGHT // self.grade_font_scale
+        )
+        self.grade_text = self.grade_font.render("", True, (255, 255, 255))
+        self.grade_text_rect = self.grade_text.get_rect(center=self.bottom_overlay_rect.center)
+
+        self.grade_delay = 0
+
+    def update_accuracy(self) -> None:
+        total = self.c_perfect + self.c_great + self.c_early + self.c_miss
+        sum = self.c_perfect + self.c_great * 0.8 + self.c_early * 0.5
+
+        if total == 0:
+            self.accuracy = 0.0
+        else:
+            self.accuracy = (sum / total) * 100
+
+        if self.accuracy >= 95.00:
+            self.rank = "S"
+            self.rank_color = (150, 100, 180)
+        elif self.accuracy >= 90.00:
+            self.rank = "A"
+            self.rank_color = (150, 70, 120)
+        elif self.accuracy >= 75.00:
+            self.rank = "B"
+            self.rank_color = (70, 150, 120)
+        else:
+            self.rank = "C"
+            self.rank_color = (150, 150, 150)
+
+        self.rank_text = self.rank_font.render(self.rank, True, self.rank_color)
+        self.accuracy_text = self.accuracy_font.render(f"{self.accuracy:0.2f}%", True, (255, 255, 255))
+        self.accuracy_text_rect = self.accuracy_text.get_rect()
+        self.accuracy_text_rect.topright = self.ctx.Display.get_rect().topright
+        self.accuracy_text_rect.right = self.rank_text_rect.right
 
     def spawn_note(self) -> None:
         assert self.ctx.conductor
@@ -234,6 +308,28 @@ class InGame(State):
 
                     group[idx] = None  # type: ignore
 
+                if grade == "PERFECT":
+                    self.combo += 1
+                    self.c_perfect += 1
+
+                    self.grade_text = self.grade_font.render("Perfect", True, (141, 223, 246))
+                    self.grade_text_rect = self.grade_text.get_rect(center=self.bottom_overlay_rect.center)
+                    self.grade_delay = 0
+                elif grade == "GREAT":
+                    self.combo += 1
+                    self.c_great += 1
+
+                    self.grade_text = self.grade_font.render("Great", True, (219, 125, 175))
+                    self.grade_text_rect = self.grade_text.get_rect(center=self.bottom_overlay_rect.center)
+                    self.grade_delay = 0
+                elif grade == "EARLY":
+                    self.combo = 0
+                    self.c_early += 1
+
+                    self.grade_text = self.grade_font.render("Early", True, (140, 247, 180))
+                    self.grade_text_rect = self.grade_text.get_rect(center=self.bottom_overlay_rect.center)
+                    self.grade_delay = 0
+
                 print(grade)
 
         assert self.ctx.conductor
@@ -251,10 +347,8 @@ class InGame(State):
 
         for idx, b in enumerate(self.ctx.lanes_state):
             if b and self.lanes[idx].surface.get_alpha() == 120:
-                # if self.lanes[idx].surface.get_alpha() == 120:
                 self.lanes[idx].surface.set_alpha(230)
             else:
-                # self.lanes[idx].surface.set_alpha(120)
                 if self.lanes[idx].surface.get_alpha() != 120:
                     self.lanes[idx].surface.set_alpha(self.lanes[idx].surface.get_alpha() - 5)  # type: ignore
 
@@ -325,7 +419,7 @@ class InGame(State):
                                 and note.rect.top + 6 * self.relative_speed >= self.hit_area_rect.top
                             ):
                                 # Early
-                                self.check_key(group, expected_lanes, "EARlY")
+                                self.check_key(group, expected_lanes, "EARLY")
 
                         elif note.type == "h":
                             # else:
@@ -346,7 +440,6 @@ class InGame(State):
                                 ):
                                     # Perfect
                                     self.check_key(group, expected_lanes, "PERFECT")
-                                    pass
                                 elif (
                                     note.rect.bottom - self.note_height < self.hit_area_rect.top
                                     and note.rect.bottom - self.note_height + 4 * self.relative_speed
@@ -365,6 +458,14 @@ class InGame(State):
                                     # Early
                                     self.check_key(group, expected_lanes, "EARLY")
                                 elif note.rect.bottom - self.note_height > self.hit_area_rect.bottom:
+                                    self.combo = 0
+                                    self.c_miss += 1
+
+                                    self.grade_text = self.grade_font.render("Miss", True, (120, 120, 120))
+                                    self.grade_text_rect = self.grade_text.get_rect(
+                                        center=self.bottom_overlay_rect.center
+                                    )
+                                    self.grade_delay = 0
                                     print("MISS")
                                     note.alive = False
                                     note.surface.fill((200, 200, 200))
@@ -381,16 +482,25 @@ class InGame(State):
                                 still_down = False
 
                                 slider_lanes = list(range(note.lane.id, note.lane.id + note.width))
-                                # for keys in expected_lanes:
-                                #     for key in keys:
-                                #         if key_state[key]:
-                                #             still_down = True
                                 for key in slider_lanes:
                                     if key_state[key]:
                                         still_down = True
 
                                 if not still_down:
-                                    # Break combo
+                                    self.combo = 0
+                                    self.c_miss += 1
+
+                                    if self.c_perfect > 0:
+                                        self.c_perfect -= 1
+                                    elif self.c_great > 0:
+                                        self.c_great -= 1
+                                    elif self.c_early > 0:
+                                        self.c_early -= 1
+
+                                    self.grade_text = self.grade_font.render("Miss", True, (120, 120, 120))
+                                    self.grade_text_rect = self.grade_text.get_rect(
+                                        center=self.bottom_overlay_rect.center
+                                    )
                                     print("Slider MISS")
                                     note.alive = False
                                     note.surface.fill((200, 200, 200))
@@ -430,6 +540,13 @@ class InGame(State):
                                     for idx, _note in enumerate(group):
                                         if note == _note:
                                             group[idx] = None  # type: ignore
+                                            self.combo += 1
+                                            self.c_perfect += 1
+
+                                            self.grade_text = self.grade_font.render("Perfect", True, (141, 223, 246))
+                                            self.grade_text_rect = self.grade_text.get_rect(
+                                                center=self.bottom_overlay_rect.center
+                                            )
 
                                 if all(note is None for note in group):
                                     self.notes.remove(group)
@@ -456,12 +573,19 @@ class InGame(State):
                                     for lane in range(note.lane.id, note.lane.id + note.width):
                                         self.lanes[lane].surface.set_alpha(200)
 
-                                    self.ctx.conductor.play_hit_sounds([note], "PERFECT")
+                                    self.ctx.conductor.play_hit_sounds([note], "GREAT")
                                     # group[0] = None  # type: ignore
 
                                     for idx, _note in enumerate(group):
                                         if note == _note:
                                             group[idx] = None  # type: ignore
+                                            self.combo += 1
+                                            self.c_great += 1
+
+                                            self.grade_text = self.grade_font.render("Great", True, (219, 125, 175))
+                                            self.grade_text_rect = self.grade_text.get_rect(
+                                                center=self.bottom_overlay_rect.center
+                                            )
 
                                 if all(note is None for note in group):
                                     self.notes.remove(group)
@@ -484,12 +608,19 @@ class InGame(State):
                                     for lane in range(note.lane.id, note.lane.id + note.width):
                                         self.lanes[lane].surface.set_alpha(200)
 
-                                    self.ctx.conductor.play_hit_sounds([note], "PERFECT")
+                                    self.ctx.conductor.play_hit_sounds([note], "EARLY")
                                     # group[0] = None  # type: ignore
 
                                     for idx, _note in enumerate(group):
                                         if note == _note:
                                             group[idx] = None  # type: ignore
+                                            self.combo = 0
+                                            self.c_early += 1
+
+                                            self.grade_text = self.grade_font.render("Early", True, (140, 247, 180))
+                                            self.grade_text_rect = self.grade_text.get_rect(
+                                                center=self.bottom_overlay_rect.center
+                                            )
 
                                 if all(note is None for note in group):
                                     self.notes.remove(group)
@@ -503,7 +634,14 @@ class InGame(State):
                                 self.notes.remove(group)
 
                                 if not note.type == "h" and note.alive:
-                                    print("MISS MISS MISS", note.type)
+                                    print("MISS")
+                                    self.combo = 0
+                                    self.c_miss += 1
+
+                                    self.grade_text = self.grade_font.render("Miss", True, (120, 120, 120))
+                                    self.grade_text_rect = self.grade_text.get_rect(
+                                        center=self.bottom_overlay_rect.center
+                                    )
 
                         # Might remove this field if it proves itself for future redundancy
                         note.remdist = self.hit_area_rect.centery - note.rect.centery
@@ -518,6 +656,21 @@ class InGame(State):
 
         if self.playing:
             self.ctx.conductor.update()
+
+        self.update_accuracy()
+
+        self.combo_text = self.combo_font.render(str(self.combo), True, (255, 255, 255))
+        self.combo_text_rect = self.combo_text.get_rect()
+        self.combo_text_rect.centery = self.ctx.Display.get_rect().centery
+        self.combo_text_rect.centerx = floor(
+            self.ctx.SCREEN_WIDTH - (self.ctx.SCREEN_WIDTH - self.lanes[-1].rect.right) / 2
+        )
+
+        self.grade_delay += 1
+        if self.grade_delay == 15:
+            self.grade_text = self.grade_font.render("", True, (255, 255, 255))
+            self.grade_text_rect = self.grade_text.get_rect(center=self.bottom_overlay_rect.center)
+            self.grade_delay = 0
 
     def draw(self) -> None:
         self.ctx.Display.blit(self.bg, (0, 0))
@@ -537,3 +690,8 @@ class InGame(State):
 
         for lane in self.lanes:
             self.ctx.Display.blit(lane.key_hint, lane.key_hint_rect)
+
+        self.ctx.Display.blit(self.accuracy_text, self.accuracy_text_rect)
+        self.ctx.Display.blit(self.rank_text, self.rank_text_rect)
+        self.ctx.Display.blit(self.combo_text, self.combo_text_rect)
+        self.ctx.Display.blit(self.grade_text, self.grade_text_rect)
