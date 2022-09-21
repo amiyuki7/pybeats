@@ -11,7 +11,7 @@ from pygame import font, mixer
 from pygame.surface import Surface
 
 from .conf import Conf
-from .lib import Difficulty, NoteData, SongData, fetch_song_data, panic, screen_res
+from .lib import Difficulty, NoteData, SongData, fetch_song_data, panic, screen_res, green, red
 
 pg.init()
 
@@ -89,10 +89,39 @@ class Conductor:
 
         self.note_data = note_data
         self.__notes_iter = iter(self.note_data.notes)
+        self.final_note_beat: str = list(self.note_data.notes)[-1]
 
     @property
     def next_note_beat(self) -> str:
         return next(self.__notes_iter)
+
+    def play_hit_sounds(self, notes: List[NoteObject], grade: str) -> None:
+        channels: list[mixer.Channel] = []
+        for _ in range(len(notes)):
+            channels.append(mixer.find_channel())
+
+        for idx, note in enumerate(notes):
+            match note.type:
+                case "t":
+                    if grade == "PERFECT":
+                        channels[idx].play(self.ctx.sfx.tap_perfect)
+                    else:
+                        channels[idx].play(self.ctx.sfx.tap_etc)
+
+                case "tc":
+                    channels[idx].play(self.ctx.sfx.tap_crit)
+                case "f":
+                    channels[idx].play(self.ctx.sfx.flair)
+                case "fc":
+                    channels[idx].play(self.ctx.sfx.flair_crit)
+                case "h":
+                    # TODO: For now there will only be one hold note at a time, but figure out how to distribute channels for multiple holds later
+                    self.ctx.HoldHeadChannel.play(self.ctx.sfx.tap_perfect)
+                    self.ctx.HoldChannel.play(
+                        mixer.Sound(f"{ROOT_DIR}/beatmaps/{self.song}/holdbeats/hold_{notes[0].length}.wav")
+                    )
+                case "hr":
+                    channels[idx].play(self.ctx.sfx.tap_perfect)
 
     def update(self) -> None:
         self.pos = mixer.music.get_pos()
@@ -101,34 +130,34 @@ class Conductor:
             # Debug
             print(list(map(lambda note: note.type, note_list)), self.beat_count)
 
-            num_notes = len(note_list)
-
-            # Number of channels required for this beat
-            channels: List[mixer.Channel] = []
-            for _ in range(num_notes):
-                channels.append(mixer.find_channel())
-
-            # Play multiple notes simultaneously
-            for i, note in enumerate(note_list):
-                match note.type:
-                    case "t":
-                        channels[i].play(self.ctx.sfx.tap_perfect)
-                    case "tc":
-                        channels[i].play(self.ctx.sfx.tap_crit)
-                    case "f":
-                        channels[i].play(self.ctx.sfx.flair)
-                    case "fc":
-                        channels[i].play(self.ctx.sfx.flair_crit)
-                    case "h":
-                        # TODO: For now there will only be one hold note at a time, but figure out how to distribute channels for multiple holds later
-                        self.ctx.HoldHeadChannel.play(self.ctx.sfx.tap_perfect)
-                        self.ctx.HoldChannel.play(
-                            mixer.Sound(f"{ROOT_DIR}/beatmaps/{self.song}/holdbeats/hold_{note_list[0].length}.wav")
-                        )
-                    case "hr":
-                        channels[i].play(self.ctx.sfx.tap_perfect)
-
-            self.played = True
+            # num_notes = len(note_list)
+            #
+            # # Number of channels required for this beat
+            # channels: List[mixer.Channel] = []
+            # for _ in range(num_notes):
+            #     channels.append(mixer.find_channel())
+            #
+            # # Play multiple notes simultaneously
+            # for i, note in enumerate(note_list):
+            #     match note.type:
+            #         case "t":
+            #             channels[i].play(self.ctx.sfx.tap_perfect)
+            #         case "tc":
+            #             channels[i].play(self.ctx.sfx.tap_crit)
+            #         case "f":
+            #             channels[i].play(self.ctx.sfx.flair)
+            #         case "fc":
+            #             channels[i].play(self.ctx.sfx.flair_crit)
+            #         case "h":
+            #             # TODO: For now there will only be one hold note at a time, but figure out how to distribute channels for multiple holds later
+            #             self.ctx.HoldHeadChannel.play(self.ctx.sfx.tap_perfect)
+            #             self.ctx.HoldChannel.play(
+            #                 mixer.Sound(f"{ROOT_DIR}/beatmaps/{self.song}/holdbeats/hold_{note_list[0].length}.wav")
+            #             )
+            #         case "hr":
+            #             channels[i].play(self.ctx.sfx.tap_perfect)
+            #
+            # self.played = True
 
         if self.pos >= (self.beat_count) * self.sec_per_beat * 1000:
             self.beat_count += 1
@@ -304,7 +333,7 @@ class FadeOverlay:
         self.has_toggled_mode = True
 
 
-from .states.ingame import InGame
+from .states.ingame import InGame, NoteObject
 from .states.loading import Loading
 from .states.menu import Menu
 from .states.songselect import SongSelect
@@ -406,6 +435,9 @@ class App:
         self.cursor.set_alpha(200)
         self.setState(init_state)
 
+        self.lanes_state: List[bool] = [False for _ in range(8)]
+        self.key_down: bool = False
+
     def setState(self, state: Type[State]) -> None:
         self._state = state(self)
 
@@ -440,18 +472,33 @@ class App:
         return (curr_progress, total_progress)
 
     def check_keys(self) -> None:
+        # pass
+
         pressed_keys = pg.key.get_pressed()
 
-        if pressed_keys[pg.K_SPACE]:
-            pass
+        self.lanes_state = [
+            pressed_keys[pg.K_a],
+            pressed_keys[pg.K_s],
+            pressed_keys[pg.K_d],
+            pressed_keys[pg.K_f],
+            pressed_keys[pg.K_j],
+            pressed_keys[pg.K_k],
+            pressed_keys[pg.K_l],
+            pressed_keys[pg.K_SEMICOLON],
+        ]
 
     def check_events(self) -> None:
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
             if event.type == pg.KEYDOWN:
                 self.check_keys()
+                self.key_down = True
+            if event.type == pg.KEYUP:
+                self.check_keys()
+
             # 1 => Left click
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 if type(self._state) is Menu:
@@ -487,7 +534,6 @@ class App:
                         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
                         self.mixer.play()
                     elif self._state.hover_play and not self._state.play:
-                        self.mixer.play_sfx(self.sfx.play_game)
 
                         match self._state.difficulty:
                             case Difficulty.Easy:
@@ -509,6 +555,8 @@ class App:
                             print("This beatmap doesn't exist yet!")
                             self.conductor = None
                             return
+
+                        self.mixer.play_sfx(self.sfx.play_game)
 
                         # TODO: Add the background video and an option for that to be toggled
                         # self.video = Video(self, self._state.song_ref.mv.frames_path, self._state.song_ref.image_name)
@@ -545,4 +593,16 @@ class App:
                 self.Display.blit(self.cursor, self.cursor_rect)
 
             pg.display.update()
+
+            # Debugging lanes
+            # if self.key_down:
+            #     out = ""
+            #     for b in self.lanes_state:
+            #         out += green("X ") if b else red("X ")
+            #
+            #     print(out)
+
+            self.key_down = False
+            # self.lanes_state = [False for _ in range(8)]
+
             self.Clock.tick(Conf.TARGET_FPS)
