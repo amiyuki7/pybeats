@@ -165,6 +165,8 @@ class InGame(State):
 
         self.dead_sliders: List[int] = []
 
+        self.combo = 0
+
     def spawn_note(self) -> None:
         assert self.ctx.conductor
 
@@ -423,7 +425,11 @@ class InGame(State):
                                         self.lanes[lane].surface.set_alpha(200)
 
                                     self.ctx.conductor.play_hit_sounds([note], "PERFECT")
-                                    group[0] = None  # type: ignore
+                                    # group[0] = None  # type: ignore
+
+                                    for idx, _note in enumerate(group):
+                                        if note == _note:
+                                            group[idx] = None  # type: ignore
 
                                 if all(note is None for note in group):
                                     self.notes.remove(group)
@@ -451,7 +457,11 @@ class InGame(State):
                                         self.lanes[lane].surface.set_alpha(200)
 
                                     self.ctx.conductor.play_hit_sounds([note], "PERFECT")
-                                    group[0] = None  # type: ignore
+                                    # group[0] = None  # type: ignore
+
+                                    for idx, _note in enumerate(group):
+                                        if note == _note:
+                                            group[idx] = None  # type: ignore
 
                                 if all(note is None for note in group):
                                     self.notes.remove(group)
@@ -475,7 +485,11 @@ class InGame(State):
                                         self.lanes[lane].surface.set_alpha(200)
 
                                     self.ctx.conductor.play_hit_sounds([note], "PERFECT")
-                                    group[0] = None  # type: ignore
+                                    # group[0] = None  # type: ignore
+
+                                    for idx, _note in enumerate(group):
+                                        if note == _note:
+                                            group[idx] = None  # type: ignore
 
                                 if all(note is None for note in group):
                                     self.notes.remove(group)
