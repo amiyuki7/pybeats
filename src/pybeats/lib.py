@@ -21,8 +21,19 @@ def panic(content: str) -> str:
     MAG = colorama.Fore.MAGENTA
     RES = colorama.Fore.RESET
     BRI = colorama.Style.BRIGHT
-
     return f"{BRI}{RED}[ERR]:{RES} {MAG}{content}{RES}"
+
+
+def green(content: str) -> str:
+    GREEN = colorama.Fore.GREEN
+    RES = colorama.Fore.RESET
+    return f"{GREEN}{content}{RES}"
+
+
+def red(content: str) -> str:
+    RED = colorama.Fore.RED
+    RES = colorama.Fore.RESET
+    return f"{RED}{content}{RES}"
 
 
 def screen_res(meta) -> tuple[int, int]:
