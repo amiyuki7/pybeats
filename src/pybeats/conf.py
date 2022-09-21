@@ -25,3 +25,14 @@ class Conf:
     ]
 
     ROOT_DIR = Path(__file__).resolve().parents[2]
+
+    KEYBINDS = {
+        "lane0": "a",
+        "lane1": "s",
+        "lane2": "d",
+        "lane3": "f",
+        "lane4": "j",
+        "lane5": "k",
+        "lane6": "l",
+        "lane7": ";",
+    }
