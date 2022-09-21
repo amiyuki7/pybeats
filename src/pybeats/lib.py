@@ -47,7 +47,7 @@ def screen_res(meta) -> tuple[int, int]:
 
 
 class Note:
-    __slots__ = ("lane", "width", "type", "length")
+    __slots__ = ("lane", "width", "type", "length", "pair")
 
     def __init__(self, raw: Dict[str, Any]) -> None:
         self.lane: int = raw["l"]
@@ -55,6 +55,7 @@ class Note:
         self.type: str = raw["t"]
 
         self.length: int = raw.get("ln") or 1
+        self.pair: int = raw.get("p") or 0
 
     @property
     def __dict__(self) -> Dict[str, Any]:
@@ -64,11 +65,6 @@ class Note:
 class NoteData:
     def __init__(self, notes) -> None:
         self.notes: Dict[str, List[Note]] = OrderedDict(notes)
-        # self.__notes_iter = iter(self.notes)
-
-    # @property
-    # def next_note_beat(self) -> str:
-    #     return next(self.__notes_iter)
 
 
 class SongData:
