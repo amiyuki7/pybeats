@@ -165,3 +165,75 @@ class SongData:
 def fetch_song_data(song: str) -> SongData:
     meta = toml.load(f"{Conf.ROOT_DIR}/beatmaps/{song}/meta.toml")
     return SongData(meta)
+
+
+def beatmap_to_dict(beatmap: NoteData) -> Dict[str, List[Dict[str, int | str]]]:
+    d = {}
+
+    for k, v in beatmap.notes.items():
+        d[k] = []
+        for note in v:
+            d[k].append(
+                {
+                    "l": note.lane,
+                    "w": note.width,
+                    "t": note.type,
+                    "ln": note.length == 1 and None or note.length,
+                    "p": note.pair == 0 and None or note.pair,
+                }
+            )
+
+    return d
+
+
+def save_song_data(data: SongData):
+    d = {
+        "name": data.name,
+        "name_en": data.name_en,
+        "image_name": data.image_name,
+        "prod": data.prod,
+        "prod_en": data.prod_en,
+        "song_path": data.song_path,
+        "lite_song_path": data.lite_song_path,
+        "lite_img": data.lite_img,
+        "questionable": data.questionable,
+        "bpm_crotchet": data.bpm_crotchet,
+        "bpm_semiquaver": data.bpm_semiquaver,
+        "bpm_semihemiquaver": data.bpm_semihemiquaver,
+        "vocals": {
+            "vocaloid": data.vocals.vocaloid,
+            "vocaloid_avatar": data.vocals.vocaloid_avatar,
+            "cover": data.vocals.cover,
+            "cover_avatar": data.vocals.cover_avatar,
+        },
+        "mv": {
+            "available": data.mv.available,
+            "frames_path": data.mv.frames_path,
+        },
+        "difficulty": {
+            "easy": data.difficulty.easy,
+            "normal": data.difficulty.normal,
+            "hard": data.difficulty.hard,
+            "master": data.difficulty.master,
+        },
+        "diamond": {
+            "easy": data.diamond.easy,
+            "normal": data.diamond.normal,
+            "hard": data.diamond.hard,
+            "master": data.diamond.master,
+        },
+        "grade": {
+            "easy": data.grade.easy,
+            "normal": data.grade.normal,
+            "hard": data.grade.hard,
+            "master": data.grade.master,
+        },
+        "map_easy": beatmap_to_dict(data.map_easy),
+        "map_normal": beatmap_to_dict(data.map_normal),
+        "map_hard": beatmap_to_dict(data.map_hard),
+        "map_master": beatmap_to_dict(data.map_master),
+    }
+
+    print(green(f"{Conf.ROOT_DIR}/beatmaps/{data.name}/meta.toml"))
+    with open(f"{Conf.ROOT_DIR}/beatmaps/{data.name}/meta.toml", "w") as f:
+        toml.dump(d, f)

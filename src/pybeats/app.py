@@ -11,7 +11,7 @@ from pygame import font, mixer
 from pygame.surface import Surface
 
 from .conf import Conf
-from .lib import Difficulty, NoteData, SongData, fetch_song_data, panic, screen_res, green, red
+from .lib import Difficulty, NoteData, SongData, fetch_song_data, panic, save_song_data, screen_res, green, red
 
 pg.init()
 
@@ -76,7 +76,7 @@ class MixerWrapper:
 
 
 class Conductor:
-    def __init__(self, ctx: App, bpm: int, song: str, note_data: NoteData) -> None:
+    def __init__(self, ctx: App, bpm: int, song: str, note_data: NoteData, difficulty: Difficulty) -> None:
         self.ctx = ctx
 
         self.song = song
@@ -84,6 +84,7 @@ class Conductor:
         self.sec_per_beat = 60 / bpm
         self.pos = mixer.music.get_pos()
         self.beat_count = 0
+        self.difficulty = difficulty
 
         self.played: bool = False
 
@@ -128,7 +129,8 @@ class Conductor:
 
         if (note_list := self.note_data.notes.get(str(self.beat_count - 1))) and not self.played:
             # Debug
-            print(list(map(lambda note: note.type, note_list)), self.beat_count)
+            # print(list(map(lambda note: note.type, note_list)), self.beat_count)
+            pass
 
             # num_notes = len(note_list)
             #
@@ -471,6 +473,55 @@ class App:
 
         return (curr_progress, total_progress)
 
+    def superior_diamond_grade(
+        self,
+        diamond: Literal["AP", "FC", "CL", "NA"],
+        new_diamond: Literal["AP", "FC", "CL", "NA"],
+        grade: Literal["C", "B", "A", "S"],
+        new_grade: Literal["C", "B", "A", "S"],
+    ) -> Tuple[Literal["AP", "FC", "CL", "NA"], Literal["C", "B", "A", "S"]]:
+
+        if new_diamond == "AP":
+            diamond = new_diamond
+        elif new_diamond == "FC" and diamond != "AP":
+            diamond = new_diamond
+        elif new_diamond == "CL" and diamond != "AP" and diamond != "FC":
+            diamond = new_diamond
+
+        if new_grade == "S":
+            grade = new_grade
+        elif new_grade == "A" and grade != "S":
+            grade = new_grade
+        elif new_grade == "B" and grade != "S" and grade != "A":
+            grade = new_grade
+
+        return (diamond, grade)
+
+    def save_songstate(
+        self, object: SongData, diamond: Literal["AP", "FC", "CL", "NA"], grade: Literal["C", "B", "A", "S"]
+    ) -> None:
+        assert self.conductor
+
+        match self.conductor.difficulty:
+            case Difficulty.Easy:
+                diamond, grade = self.superior_diamond_grade(object.diamond.easy, diamond, object.grade.easy, grade)
+                object.diamond.easy = diamond
+                object.grade.easy = grade
+            case Difficulty.Normal:
+                diamond, grade = self.superior_diamond_grade(object.diamond.normal, diamond, object.grade.normal, grade)
+                object.diamond.normal = diamond
+                object.grade.normal = grade
+            case Difficulty.Hard:
+                diamond, grade = self.superior_diamond_grade(object.diamond.hard, diamond, object.grade.hard, grade)
+                object.diamond.hard = diamond
+                object.grade.hard = grade
+            case Difficulty.Master:
+                diamond, grade = self.superior_diamond_grade(object.diamond.master, diamond, object.grade.master, grade)
+                object.diamond.master = diamond
+                object.grade.master = grade
+
+        save_song_data(object)
+
     def check_keys(self) -> None:
         # pass
 
@@ -547,7 +598,11 @@ class App:
 
                         self.conductor = None
                         self.conductor = Conductor(
-                            self, self._state.song_ref.bpm_semiquaver, self._state.song_ref.name, notes
+                            self,
+                            self._state.song_ref.bpm_semiquaver,
+                            self._state.song_ref.name,
+                            notes,
+                            self._state.difficulty,
                         )
 
                         # Ensure the map actually has been created; i.e. there's more than the boilerplate note
@@ -575,6 +630,9 @@ class App:
             self.fader.fade_to_state(Menu)
         elif type(self._state) is SongSelect and self._state.play:
             self.fader.fade_to_state(InGame)
+
+        if type(self._state) is InGame and self._state.done:
+            self.fader.fade_to_state(SongSelect)
 
     def run(self) -> None:
         self.mixer.load(f"{ROOT_DIR}/audio/君の夜をくれ3.mp3")
