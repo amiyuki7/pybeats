@@ -756,4 +756,3 @@ class InGame(State):
         self.ctx.Display.blit(self.rank_text, self.rank_text_rect)
         self.ctx.Display.blit(self.combo_text, self.combo_text_rect)
         self.ctx.Display.blit(self.grade_text, self.grade_text_rect)
-        print(self.total)
