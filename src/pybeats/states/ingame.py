@@ -68,7 +68,8 @@ class NoteObject:
                 (
                     self.lane.rect.width * self.width - self.ctx.lane_border_width * (2 + self.width - 1),
                     # Calculates the note's height
-                    (60 * self.ctx.relative_speed * self.ctx.ctx.conductor.sec_per_beat * note.length),
+                    (Conf.TARGET_FPS * self.ctx.relative_speed * self.ctx.ctx.conductor.sec_per_beat * note.length)
+                    + self.ctx.note_height / 2,
                 )
             )
             self.surface.fill((148, 236, 150))
