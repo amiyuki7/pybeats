@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from math import floor
 
 if TYPE_CHECKING:
     from ..app import App
@@ -64,13 +65,13 @@ class Menu(State):
             self.ctx.mixer.play()
 
         if self.switchf:
-            self.title_rect.y -= self.shift_dist
-            self.play_rect.y -= self.shift_dist
-            self.options_rect.y -= self.shift_dist
+            self.title_rect.y -= floor(self.shift_dist * self.ctx.dt)
+            self.play_rect.y -= floor(self.shift_dist * self.ctx.dt)
+            self.options_rect.y -= floor(self.shift_dist * self.ctx.dt)
 
-            self.title.set_alpha(self.title.get_alpha() - self.fade_speed)  # type: ignore
-            self.play_text.set_alpha(self.play_text.get_alpha() - self.fade_speed)  # type: ignore
-            self.options_text.set_alpha(self.options_text.get_alpha() - self.fade_speed)  # type: ignore
+            self.title.set_alpha(self.title.get_alpha() - self.fade_speed * self.ctx.dt)  # type: ignore
+            self.play_text.set_alpha(self.play_text.get_alpha() - self.fade_speed * self.ctx.dt)  # type: ignore
+            self.options_text.set_alpha(self.options_text.get_alpha() - self.fade_speed * self.ctx.dt)  # type: ignore
         else:
             cursor = pg.mouse.get_pos()
 

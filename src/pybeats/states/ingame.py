@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import time
 from math import floor
-from typing import TYPE_CHECKING, List, Tuple, Literal
+from typing import TYPE_CHECKING, List, Literal, Tuple
 
 import pygame as pg
+from pygame import font
 from pygame.rect import Rect
 from pygame.surface import Surface
-from pygame import font
 
 from pybeats.lib import Note
 
@@ -68,8 +68,8 @@ class NoteObject:
                 (
                     self.lane.rect.width * self.width - self.ctx.lane_border_width * (2 + self.width - 1),
                     # Calculates the note's height
-                    (Conf.TARGET_FPS * self.ctx.relative_speed * self.ctx.ctx.conductor.sec_per_beat * note.length)
-                    + self.ctx.note_height / 2,
+                    (60 * self.ctx.relative_speed * self.ctx.ctx.conductor.sec_per_beat * note.length)
+                    # + self.ctx.note_height / 2,
                 )
             )
             self.surface.fill((148, 236, 150))
@@ -390,11 +390,11 @@ class InGame(State):
             self.spawn_note()
 
         for idx, b in enumerate(self.ctx.lanes_state):
-            if b and self.lanes[idx].surface.get_alpha() == 120:
+            if b and self.lanes[idx].surface.get_alpha() <= 120:  # type: ignore
                 self.lanes[idx].surface.set_alpha(230)
             else:
-                if self.lanes[idx].surface.get_alpha() != 120:
-                    self.lanes[idx].surface.set_alpha(self.lanes[idx].surface.get_alpha() - 5)  # type: ignore
+                if self.lanes[idx].surface.get_alpha() > 120:  # type: ignore
+                    self.lanes[idx].surface.set_alpha(self.lanes[idx].surface.get_alpha() - 5 * self.ctx.dt)  # type: ignore
 
         for group in self.notes:
             for note in group:
@@ -411,7 +411,7 @@ class InGame(State):
 
                     if note == group[0]:
                         if note.type == "h":
-                            note.rect.y += self.relative_speed
+                            note.rect.y += floor(self.relative_speed * self.ctx.dt)
                         elif (pair := note.pair) != 0:
                             # Ensure the release note is properly aligned with the slider
                             for _group in self.notes:
@@ -426,7 +426,7 @@ class InGame(State):
                             ):
                                 note.rect.y += self.hit_area_rect.y - note.rect.y
                             else:
-                                note.rect.y += self.relative_speed
+                                note.rect.y += floor(self.relative_speed * self.ctx.dt)
                     else:
                         note.rect.y = group[0].rect.y
 

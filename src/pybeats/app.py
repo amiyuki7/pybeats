@@ -4,6 +4,7 @@ import os
 import sys
 from abc import ABC, abstractmethod
 from threading import Thread
+from math import floor
 from typing import Dict, List, Literal, Optional, Tuple, Type
 
 import pygame as pg
@@ -248,7 +249,7 @@ class FadeOverlay:
         self.adjust_volume_flag: bool = False
 
     def fadein(self) -> None:
-        self.fade_alpha -= 5
+        self.fade_alpha -= floor(5 * self.ctx.dt)
 
         self.fade_overlay.set_alpha(self.fade_alpha)
         if self.fade_alpha <= 0:
@@ -256,7 +257,7 @@ class FadeOverlay:
             self.adjust_volume_flag = False
 
     def fadeout(self) -> None:
-        self.fade_alpha += 5
+        self.fade_alpha += floor(5 * self.ctx.dt)
 
         if self.adjust_volume_flag:
             self.ctx.mixer.set_volume(self.ctx.mixer.get_volume() - 0.02)
@@ -353,6 +354,7 @@ class App:
     conductor: Optional[Conductor] = None
 
     def __init__(self, init_state: Type[State]) -> None:
+        self.dt = 1
         self.HoldChannel = mixer.Channel(1)
         self.HoldHeadChannel = mixer.Channel(2)
         self.LeadPauseChannel = mixer.Channel(3)
@@ -634,4 +636,4 @@ class App:
             self.key_down = False
             # self.lanes_state = [False for _ in range(8)]
 
-            self.Clock.tick(Conf.TARGET_FPS)
+            self.dt = self.Clock.tick(Conf.TARGET_FPS) * 0.001 * 60
