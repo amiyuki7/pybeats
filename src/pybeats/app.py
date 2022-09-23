@@ -86,7 +86,7 @@ class Conductor:
         self.beat_count = 0
         self.difficulty = difficulty
 
-        self.played: bool = False
+        # self.played: bool = False
 
         self.note_data = note_data
         self.__notes_iter = iter(self.note_data.notes)
@@ -127,43 +127,14 @@ class Conductor:
     def update(self) -> None:
         self.pos = mixer.music.get_pos()
 
-        if (note_list := self.note_data.notes.get(str(self.beat_count - 1))) and not self.played:
-            # Debug
-            # print(list(map(lambda note: note.type, note_list)), self.beat_count)
-            pass
-
-            # num_notes = len(note_list)
-            #
-            # # Number of channels required for this beat
-            # channels: List[mixer.Channel] = []
-            # for _ in range(num_notes):
-            #     channels.append(mixer.find_channel())
-            #
-            # # Play multiple notes simultaneously
-            # for i, note in enumerate(note_list):
-            #     match note.type:
-            #         case "t":
-            #             channels[i].play(self.ctx.sfx.tap_perfect)
-            #         case "tc":
-            #             channels[i].play(self.ctx.sfx.tap_crit)
-            #         case "f":
-            #             channels[i].play(self.ctx.sfx.flair)
-            #         case "fc":
-            #             channels[i].play(self.ctx.sfx.flair_crit)
-            #         case "h":
-            #             # TODO: For now there will only be one hold note at a time, but figure out how to distribute channels for multiple holds later
-            #             self.ctx.HoldHeadChannel.play(self.ctx.sfx.tap_perfect)
-            #             self.ctx.HoldChannel.play(
-            #                 mixer.Sound(f"{ROOT_DIR}/beatmaps/{self.song}/holdbeats/hold_{note_list[0].length}.wav")
-            #             )
-            #         case "hr":
-            #             channels[i].play(self.ctx.sfx.tap_perfect)
-            #
-            # self.played = True
+        # This is the exact time at which the next note will be perfect
+        # if (note_list := self.note_data.notes.get(str(self.beat_count - 1))) and not self.played:
+        #     # Debug
+        #     print(list(map(lambda note: note.type, note_list)), self.beat_count)
 
         if self.pos >= (self.beat_count) * self.sec_per_beat * 1000:
             self.beat_count += 1
-            self.played = False
+            # self.played = False
 
 
 class Video:
