@@ -412,6 +412,13 @@ class InGame(State):
                     if note == group[0]:
                         if note.type == "h":
                             note.rect.y += self.relative_speed
+                        elif (pair := note.pair) != 0:
+                            # Ensure the release note is properly aligned with the slider
+                            for _group in self.notes:
+                                for _note in _group:
+                                    if _note:
+                                        if _note.pair == pair:
+                                            note.rect.top = _note.rect.top
                         else:
                             if (
                                 note.rect.y + self.relative_speed > self.hit_area_rect.y
