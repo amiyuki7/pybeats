@@ -1,0 +1,161 @@
+name = "ド屑"
+name_en = "DOKUZU"
+image_name = "dokuzu"
+prod = "なきそ"
+prod_en = "NAKISO"
+song_path = "beatmaps/dokuzu/dokuzu.mp3"
+lite_song_path = "beatmaps/dokuzu/dokuzuLITE.mp3"
+lite_img = "beatmaps/dokuzu/images/lite.jpg"
+questionable = true
+bpm_crotchet = 115
+bpm_semiquaver = 460
+bpm_semihemiquaver = 920
+
+vocals = "町田ちま"
+vocals_en = "Machita Chima"
+vocals_avatar = "beatmps/dokuzu/images/vocals_avatar.jpg"
+mapper = "amiyuki7"
+mapper_avatar = "!"
+
+# [vocals]
+# vocaloid = "歌愛ユキ"
+# vocaloid_avatar = "beatmaps/ド屑/images/vocaloid_avatar.jpg"
+# cover = "町たちま"
+# cover_avatar = "beatmaps/ド屑/images/cover_avatar.jpg"
+
+[mv]
+available = true
+frames_path = "beatmaps/dokuzu/frames"
+
+[difficulty]
+easy = 3
+normal = 10
+hard = 17
+# expert = 23
+master = 23
+
+[diamond]
+easy = "NA"
+normal = "NA"
+hard = "AP"
+master = "FC"
+
+[grade]
+easy = "C"
+normal = "C"
+hard = "S"
+master = "S"
+
+[map_easy]
+1=[{l=1, w=1, t='t'}]
+
+[map_normal]
+#1
+2=[{l=3, w=2, t='fc'}]
+#2
+16=[{l=5, w=2, t='t'}]
+18=[{l=5, w=2, t='tc'}]
+#3
+34=[{l=3, w=2, t='tc'}]
+#4
+50=[{l=3, w=2, t='f'}]
+#5
+64=[{l=3, w=2, t='t'}]
+66=[{l=5, w=2, t='fc'}]
+74=[{l=3, w=2, t='t'}]
+76=[{l=3, w=2, t='t'}]
+78=[{l=3, w=2, t='t'}]
+#6
+82=[{l=5, w=2, t='fc'}]
+90=[{l=3, w=2, t='t'}]
+92=[{l=3, w=2, t='t'}]
+94=[{l=3, w=2, t='t'}]
+#7
+98=[{l=2, w=2, t='t'}, {l=6, w=2, t='tc'}]
+106=[{l=3, w=2, t='t'}]
+108=[{l=5, w=2, t='t'}]
+110=[{l=3, w=2, t='t'}]
+#8
+112=[{l=5, w=2, t='t'}]
+114=[{l=3, w=2, t='f'}]
+#9
+130=[{l=1, w=4, t='h', ln=14, p=1}]
+#10
+144=[{l=1, w=4, t='hr', p=1}]
+146=[{l=7, w=2, t='t'}]
+154=[{l=5, w=2, t='t'}]
+#11
+162=[{l=5, w=4, t='h', ln=14, p=2}]
+#12
+176=[{l=5, w=4, t='hr', p=2}]
+178=[{l=1, w=2, t='t'}]
+186=[{l=3, w=2, t='t'}]
+#13
+192=[{l=4, w=1, t='tc'}]
+193=[{l=5, w=1, t='tc'}]
+194=[{l=4, w=1, t='tc'}]
+#14
+208=[{l=1, w=2, t='t'}]
+210=[{l=7, w=2, t='t'}]
+#15
+224=[{l=1, w=2, t='f'}]
+226=[{l=7, w=2, t='f'}]
+#16
+240=[{l=1, w=2, t='fc'}]
+242=[{l=7, w=2, t='fc'}]
+250=[{l=3, w=1, t='t'}]
+254=[{l=5, w=1, t='t'}]
+#17
+256=[{l=4, w=1, t='t'}]
+258=[{l=6, w=1, t='tc'}]
+262=[{l=2, w=2, t='t'}]
+266=[{l=2, w=2, t='t'}]
+270=[{l=2, w=2, t='t'}]
+#18
+274=[{l=2, w=2, t='t'}]
+278=[{l=2, w=2, t='t'}]
+282=[{l=2, w=2, t='t'}]
+286=[{l=2, w=2, t='t'}]
+#19
+290=[{l=5, w=4, t='tc'}]
+294=[{l=2, w=2, t='t'}]
+298=[{l=2, w=2, t='t'}]
+302=[{l=2, w=2, t='t'}]
+#20
+306=[{l=2, w=2, t='t'}]
+310=[{l=2, w=2, t='t'}]
+314=[{l=2, w=2, t='t'}]
+318=[{l=5, w=2, t='t'}]
+#21
+320=[{l=3, w=2, t='t'}]
+322=[{l=5, w=4, t='tc'}]
+326=[{l=3, w=1, t='t'}]
+330=[{l=3, w=1, t='t'}]
+334=[{l=6, w=1, t='t'}]
+#22
+338=[{l=6, w=1, t='t'}]
+342=[{l=1, w=1, t='t'}, {l=3, w=1, t='t'}]
+346=[{l=2, w=1, t='t'}, {l=4, w=1, t='t'}]
+350=[{l=1, w=1, t='t'}, {l=3, w=1, t='t'}]
+#23
+354=[{l=5, w=4, t='tc'}]
+358=[{l=5, w=1, t='t'}, {l=7, w=1, t='t'}]
+362=[{l=6, w=1, t='t'}, {l=8, w=1, t='t'}]
+366=[{l=2, w=1, t='t'}, {l=4, w=1, t='t'}]
+#24
+370=[{l=1, w=1, t='t'}, {l=3, w=1, t='t'}]
+374=[{l=4, w=1, t='t'}, {l=5, w=1, t='t'}]
+378=[{l=3, w=1, t='t'}, {l=6, w=1, t='t'}]
+382=[{l=2, w=1, t='t'}, {l=7, w=1, t='t'}]
+#25
+386=[{l=1, w=8, t='h', ln=16, p=3}]
+#26
+402=[{l=1, w=8, t='hr', p=3}]
+406=[{l=2, w=2, t='f'}, {l=6, w=2, t='f'}]
+410=[{l=2, w=2, t='f'}, {l=6, w=2, t='f'}]
+
+[map_hard]
+1=[{l=1, w=1, t='t'}]
+
+[map_master]
+1=[{l=1, w=1, t='t'}]

@@ -1,0 +1,59 @@
+name = "ゴーストルール"
+name_en = "Ghost Rule"
+image_name = "ghostrule"
+prod = "DECO*27"
+prod_en = "DECO*27"
+song_path = "beatmaps/ghostrule/ghostrule.mp3"
+lite_song_path = "beatmaps/ghostrule/ghostruleLITE.mp3"
+lite_img = "beatmaps/ghostrule/images/lite.jpg"
+questionable = true
+bpm_crotchet = 105
+bpm_semiquaver = 420
+bpm_semihemiquaver = 840
+
+vocals = "初音ミク"
+vocals_en = "Hatsune Miku"
+vocals_avatar = "beatmps/ghostrule/images/vocals_avatar.jpg"
+mapper = "amiyuki7"
+mapper_avatar = "!"
+
+# [vocals]
+# vocaloid = "初音ミク"
+# vocaloid_avatar = "beatmaps/ゴーストルール/images/vocaloid_avatar.jpg"
+# cover = ""
+# cover_avatar = "beatmaps/ゴーストルール/images/cover_avatar.jpg"
+
+[mv]
+available = false
+frames_path = "beatmaps/ghostrule/frames"
+
+[difficulty]
+easy = 4
+normal = 11
+hard = 19
+# expert = 26
+master = 26
+
+[diamond]
+easy = "NA"
+normal = "NA"
+hard = "AP"
+master = "FC"
+
+[grade]
+easy = "C"
+normal = "C"
+hard = "S"
+master = "S"
+
+[map_easy]
+1=[{l=1, w=1, t='t'}]
+
+[map_normal]
+1=[{l=1, w=1, t='t'}]
+
+[map_hard]
+1=[{l=1, w=1, t='t'}]
+
+[map_master]
+1=[{l=1, w=1, t='t'}]
