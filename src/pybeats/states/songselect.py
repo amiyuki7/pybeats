@@ -225,16 +225,16 @@ class SongSelect(State):
         self.info_song_text_rect = self.info_pad.get_rect().center
         self.info_prod_text = self.info_font.render("", True, (255, 255, 255))
         self.info_prod_text_rect = self.info_pad.get_rect().center
-        self.info_labels_text = self.info_font.render("", True, (255, 255, 255))
-        self.info_labels_text_rect = self.info_pad.get_rect().center
-        self.info_cover = Surface((0, 0), SRCALPHA)
-        self.info_cover_rect = self.info_pad.get_rect().center
-        self.info_vocaloid = Surface((0, 0), SRCALPHA)
-        self.info_vocaloid_rect = self.info_pad.get_rect().center
-        self.info_cover_text = self.info_font.render("", True, (255, 255, 255))
-        self.info_cover_text_rect = self.info_pad.get_rect().center
-        self.info_vocaloid_text = self.info_font.render("", True, (255, 255, 255))
-        self.info_vocaloid_text_rect = self.info_pad.get_rect().center
+        # self.info_labels_text = self.info_font.render("", True, (255, 255, 255))
+        # self.info_labels_text_rect = self.info_pad.get_rect().center
+        # self.info_cover = Surface((0, 0), SRCALPHA)
+        # self.info_cover_rect = self.info_pad.get_rect().center
+        # self.info_vocaloid = Surface((0, 0), SRCALPHA)
+        # self.info_vocaloid_rect = self.info_pad.get_rect().center
+        # self.info_cover_text = self.info_font.render("", True, (255, 255, 255))
+        # self.info_cover_text_rect = self.info_pad.get_rect().center
+        # self.info_vocaloid_text = self.info_font.render("", True, (255, 255, 255))
+        # self.info_vocaloid_text_rect = self.info_pad.get_rect().center
         self.info_disclaimer = self.info_font.render("", True, (255, 255, 255))
         self.info_disclaimer_rect = self.info_pad.get_rect().center
 
@@ -456,47 +456,47 @@ class SongSelect(State):
             self.info_prod_text_rect.centerx = self.info_pad_rect.centerx
             self.info_prod_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 1.5)
 
-            self.info_labels_text = self.info_font.render("【C. Vocal】    【Vocaloid】", True, (50, 50, 50))
-            # self.info_labels_text = self.info_font.render("  【Singer】      【Vocaloid】", True, (50, 50, 50))
-            self.info_labels_text_rect = self.info_labels_text.get_rect()
-            self.info_labels_text_rect.centerx = self.info_pad_rect.centerx
-            self.info_labels_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 2.5)
-
-            raw_img = self.ctx.image_cache[self.song_ref.vocals.cover_avatar]
-            raw_img = pg.transform.scale(raw_img, (self.info_avatar_scale, self.info_avatar_scale)).convert_alpha()
-            self.info_cover = Surface(raw_img.get_size(), SRCALPHA)
-            pg.draw.ellipse(self.info_cover, (255, 255, 255, 255), (0, 0, raw_img.get_width(), raw_img.get_height()))
-            self.info_cover.blit(raw_img, (0, 0), special_flags=BLEND_RGBA_MIN)
-            self.info_cover_rect = self.info_cover.get_rect()
-            self.info_cover_rect.centerx = floor(self.info_pad_rect.centerx - self.info_pad_rect.width // 8 * 1.5)
-            self.info_cover_rect.centery = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 4.25)
-
-            raw_img = self.ctx.image_cache[self.song_ref.vocals.vocaloid_avatar]
-            raw_img = pg.transform.scale(raw_img, (self.info_avatar_scale, self.info_avatar_scale)).convert_alpha()
-            self.info_vocaloid = Surface(raw_img.get_size(), SRCALPHA)
-            pg.draw.ellipse(self.info_vocaloid, (255, 255, 255, 255), (0, 0, raw_img.get_width(), raw_img.get_height()))
-            self.info_vocaloid.blit(raw_img, (0, 0), special_flags=BLEND_RGBA_MIN)
-            self.info_vocaloid_rect = self.info_vocaloid.get_rect()
-            self.info_vocaloid_rect.centerx = floor(self.info_pad_rect.centerx + self.info_pad_rect.width // 8 * 1.5)
-            self.info_vocaloid_rect.centery = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 4.25)
-
-            self.info_cover_text = self.info_font.render(
-                f"{self.song_ref.vocals.cover == '' and 'None' or self.song_ref.vocals.cover}",
-                True,
-                (50, 50, 50),
-            )
-            self.info_cover_text_rect = self.info_cover_text.get_rect()
-            self.info_cover_text_rect.centerx = self.info_cover_rect.centerx
-            self.info_cover_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 5.5)
-
-            self.info_vocaloid_text = self.info_font.render(
-                self.song_ref.vocals.vocaloid,
-                True,
-                (50, 50, 50),
-            )
-            self.info_vocaloid_text_rect = self.info_vocaloid_text.get_rect()
-            self.info_vocaloid_text_rect.centerx = self.info_vocaloid_rect.centerx
-            self.info_vocaloid_text_rect.y = self.info_cover_text_rect.y
+            # self.info_labels_text = self.info_font.render("【C. Vocal】    【Vocaloid】", True, (50, 50, 50))
+            # # self.info_labels_text = self.info_font.render("  【Singer】      【Vocaloid】", True, (50, 50, 50))
+            # self.info_labels_text_rect = self.info_labels_text.get_rect()
+            # self.info_labels_text_rect.centerx = self.info_pad_rect.centerx
+            # self.info_labels_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 2.5)
+            #
+            # raw_img = self.ctx.image_cache[self.song_ref.vocals.cover_avatar]
+            # raw_img = pg.transform.scale(raw_img, (self.info_avatar_scale, self.info_avatar_scale)).convert_alpha()
+            # self.info_cover = Surface(raw_img.get_size(), SRCALPHA)
+            # pg.draw.ellipse(self.info_cover, (255, 255, 255, 255), (0, 0, raw_img.get_width(), raw_img.get_height()))
+            # self.info_cover.blit(raw_img, (0, 0), special_flags=BLEND_RGBA_MIN)
+            # self.info_cover_rect = self.info_cover.get_rect()
+            # self.info_cover_rect.centerx = floor(self.info_pad_rect.centerx - self.info_pad_rect.width // 8 * 1.5)
+            # self.info_cover_rect.centery = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 4.25)
+            #
+            # raw_img = self.ctx.image_cache[self.song_ref.vocals.vocaloid_avatar]
+            # raw_img = pg.transform.scale(raw_img, (self.info_avatar_scale, self.info_avatar_scale)).convert_alpha()
+            # self.info_vocaloid = Surface(raw_img.get_size(), SRCALPHA)
+            # pg.draw.ellipse(self.info_vocaloid, (255, 255, 255, 255), (0, 0, raw_img.get_width(), raw_img.get_height()))
+            # self.info_vocaloid.blit(raw_img, (0, 0), special_flags=BLEND_RGBA_MIN)
+            # self.info_vocaloid_rect = self.info_vocaloid.get_rect()
+            # self.info_vocaloid_rect.centerx = floor(self.info_pad_rect.centerx + self.info_pad_rect.width // 8 * 1.5)
+            # self.info_vocaloid_rect.centery = floor(self.info_pad_rect.top + self.info_pad_rect.height // 8 * 4.25)
+            #
+            # self.info_cover_text = self.info_font.render(
+            #     f"{self.song_ref.vocals.cover == '' and 'None' or self.song_ref.vocals.cover}",
+            #     True,
+            #     (50, 50, 50),
+            # )
+            # self.info_cover_text_rect = self.info_cover_text.get_rect()
+            # self.info_cover_text_rect.centerx = self.info_cover_rect.centerx
+            # self.info_cover_text_rect.y = floor(self.info_pad_rect.top + self.info_pad_rect.height / 8 * 5.5)
+            #
+            # self.info_vocaloid_text = self.info_font.render(
+            #     self.song_ref.vocals.vocaloid,
+            #     True,
+            #     (50, 50, 50),
+            # )
+            # self.info_vocaloid_text_rect = self.info_vocaloid_text.get_rect()
+            # self.info_vocaloid_text_rect.centerx = self.info_vocaloid_rect.centerx
+            # self.info_vocaloid_text_rect.y = self.info_cover_text_rect.y
 
             self.info_disclaimer = self.info_font.render(
                 self.song_ref.questionable and "* Contains questionable lyrics" or "",
@@ -511,16 +511,16 @@ class SongSelect(State):
             self.info_song_text_rect = Rect(0, 0, 0, 0)
             self.info_prod_text = Surface((0, 0), SRCALPHA)
             self.info_prod_text_rect = Rect(0, 0, 0, 0)
-            self.info_labels_text = Surface((0, 0), SRCALPHA)
-            self.info_labels_text_rect = Rect(0, 0, 0, 0)
-            self.info_cover = Surface((0, 0), SRCALPHA)
-            self.info_cover_rect = Rect(0, 0, 0, 0)
-            self.info_vocaloid = Surface((0, 0), SRCALPHA)
-            self.info_vocaloid_rect = Rect(0, 0, 0, 0)
-            self.info_cover_text = Surface((0, 0), SRCALPHA)
-            self.info_cover_text_rect = Rect(0, 0, 0, 0)
-            self.info_vocaloid_text = Surface((0, 0), SRCALPHA)
-            self.info_vocaloid_text_rect = Rect(0, 0, 0, 0)
+            # self.info_labels_text = Surface((0, 0), SRCALPHA)
+            # self.info_labels_text_rect = Rect(0, 0, 0, 0)
+            # self.info_cover = Surface((0, 0), SRCALPHA)
+            # self.info_cover_rect = Rect(0, 0, 0, 0)
+            # self.info_vocaloid = Surface((0, 0), SRCALPHA)
+            # self.info_vocaloid_rect = Rect(0, 0, 0, 0)
+            # self.info_cover_text = Surface((0, 0), SRCALPHA)
+            # self.info_cover_text_rect = Rect(0, 0, 0, 0)
+            # self.info_vocaloid_text = Surface((0, 0), SRCALPHA)
+            # self.info_vocaloid_text_rect = Rect(0, 0, 0, 0)
             self.info_disclaimer = Surface((0, 0), SRCALPHA)
             self.info_disclaimer_rect = Rect(0, 0, 0, 0)
 
@@ -793,9 +793,9 @@ class SongSelect(State):
             self.ctx.Display.blit(self.info_pad, self.info_pad_rect)
             self.ctx.Display.blit(self.info_song_text, self.info_song_text_rect)
             self.ctx.Display.blit(self.info_prod_text, self.info_prod_text_rect)
-            self.ctx.Display.blit(self.info_labels_text, self.info_labels_text_rect)
-            self.ctx.Display.blit(self.info_cover_text, self.info_cover_text_rect)
-            self.ctx.Display.blit(self.info_vocaloid_text, self.info_vocaloid_text_rect)
+            # self.ctx.Display.blit(self.info_labels_text, self.info_labels_text_rect)
+            # self.ctx.Display.blit(self.info_cover_text, self.info_cover_text_rect)
+            # self.ctx.Display.blit(self.info_vocaloid_text, self.info_vocaloid_text_rect)
             self.ctx.Display.blit(self.info_disclaimer, self.info_disclaimer_rect)
-            self.ctx.Display.blit(self.info_cover, self.info_cover_rect)
-            self.ctx.Display.blit(self.info_vocaloid, self.info_vocaloid_rect)
+            # self.ctx.Display.blit(self.info_cover, self.info_cover_rect)
+            # self.ctx.Display.blit(self.info_vocaloid, self.info_vocaloid_rect)

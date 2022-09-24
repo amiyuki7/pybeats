@@ -93,14 +93,20 @@ class SongData:
         self.bpm_semiquaver: int = o["bpm_semiquaver"]
         self.bpm_semihemiquaver: int = o["bpm_semihemiquaver"]
 
-        class Vocals:
-            __o = o["vocals"]
-            vocaloid: str = __o["vocaloid"]
-            vocaloid_avatar: str = __o["vocaloid_avatar"]
-            cover: str = __o["cover"]
-            cover_avatar: str = __o["cover_avatar"]
+        self.vocals: str = o["vocals"]
+        self.vocals_en: str = o["vocals_en"]
+        self.vocals_avatar: str = o["vocals_avatar"]
+        self.mapper: str = o["mapper"]
+        self.mapper_avatar: str = o["mapper_avatar"]
 
-        self.vocals = Vocals
+        # class Vocals:
+        #     __o = o["vocals"]
+        #     vocaloid: str = __o["vocaloid"]
+        #     vocaloid_avatar: str = __o["vocaloid_avatar"]
+        #     cover: str = __o["cover"]
+        #     cover_avatar: str = __o["cover_avatar"]
+        #
+        # self.vocals = Vocals
 
         class Mv:
             __o = o["mv"]

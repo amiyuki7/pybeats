@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 import sys
 from abc import ABC, abstractmethod
-from threading import Thread
 from math import floor
+from threading import Thread
 from typing import Dict, List, Literal, Optional, Tuple, Type
 
 import pygame as pg
@@ -12,7 +12,7 @@ from pygame import font, mixer
 from pygame.surface import Surface
 
 from .conf import Conf
-from .lib import Difficulty, NoteData, SongData, fetch_song_data, panic, save_song_data, screen_res, green, red
+from .lib import Difficulty, NoteData, SongData, fetch_song_data, green, panic, red, save_song_data, screen_res
 
 pg.init()
 
@@ -320,7 +320,7 @@ class App:
     song_cache: Dict[str, SongData] = {}
     image_cache: Dict[str, Surface] = {}
 
-    song_names = ["ド屑", "ゴーストルール"]
+    song_names = ["dokuzu", "ghostrule"]
 
     image_paths = [
         "assets/menu_tint.jpg",
@@ -340,12 +340,6 @@ class App:
         "assets/back_icon.jpg",
         "assets/diff_arrow.jpg",
         "assets/info_pad.jpg",
-        "beatmaps/ド屑/images/cover_avatar.jpg",
-        "beatmaps/ド屑/images/lite.jpg",
-        "beatmaps/ド屑/images/vocaloid_avatar.jpg",
-        "beatmaps/ゴーストルール/images/cover_avatar.jpg",
-        "beatmaps/ゴーストルール/images/lite.jpg",
-        "beatmaps/ゴーストルール/images/vocaloid_avatar.jpg",
     ]
 
     maps: List[Video]
@@ -354,6 +348,26 @@ class App:
     conductor: Optional[Conductor] = None
 
     def __init__(self, init_state: Type[State]) -> None:
+        # Beatmap specific assets
+        for beatmap in os.scandir(f"{ROOT_DIR}/beatmaps/"):
+            print(beatmap.name)
+            if beatmap.is_dir():
+                if os.path.exists(f"beatmaps/{beatmap.name}/images/mapper_avatar.jpg"):
+                    self.image_paths.extend(
+                        (
+                            f"beatmaps/{beatmap.name}/images/lite.jpg",
+                            f"beatmaps/{beatmap.name}/images/vocals_avatar.jpg",
+                            f"beatmaps/{beatmap.name}/images/mapper_avatar.jpg",
+                        )
+                    )
+                else:
+                    self.image_paths.extend(
+                        (
+                            f"beatmaps/{beatmap.name}/images/lite.jpg",
+                            f"beatmaps/{beatmap.name}/images/vocals_avatar.jpg",
+                        )
+                    )
+        #
         self.dt = 1
         self.HoldChannel = mixer.Channel(1)
         self.HoldHeadChannel = mixer.Channel(2)
@@ -573,7 +587,7 @@ class App:
                         self.conductor = Conductor(
                             self,
                             self._state.song_ref.bpm_semiquaver,
-                            self._state.song_ref.name,
+                            self._state.song_ref.image_name,
                             notes,
                             self._state.difficulty,
                         )

@@ -1,3 +1,4 @@
+from typing import Literal
 from pathlib import Path
 from pygame import DOUBLEBUF
 
@@ -36,3 +37,5 @@ class Conf:
         "lane6": "l",
         "lane7": ";",
     }
+
+    LANGUAGE: Literal["EN", "JP"] = "EN"
