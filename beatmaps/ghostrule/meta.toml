@@ -13,7 +13,7 @@ bpm_semihemiquaver = 840
 
 vocals = "初音ミク"
 vocals_en = "Hatsune Miku"
-vocals_avatar = "beatmps/ghostrule/images/vocals_avatar.jpg"
+vocals_avatar = "beatmaps/ghostrule/images/vocals_avatar.jpg"
 mapper = "amiyuki7"
 mapper_avatar = "!"
 

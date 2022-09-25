@@ -13,7 +13,7 @@ bpm_semihemiquaver = 920
 
 vocals = "町田ちま"
 vocals_en = "Machita Chima"
-vocals_avatar = "beatmps/dokuzu/images/vocals_avatar.jpg"
+vocals_avatar = "beatmaps/dokuzu/images/vocals_avatar.jpg"
 mapper = "amiyuki7"
 mapper_avatar = "!"
 
