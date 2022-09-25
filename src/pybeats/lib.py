@@ -99,15 +99,6 @@ class SongData:
         self.mapper: str = o["mapper"]
         self.mapper_avatar: str = o["mapper_avatar"]
 
-        # class Vocals:
-        #     __o = o["vocals"]
-        #     vocaloid: str = __o["vocaloid"]
-        #     vocaloid_avatar: str = __o["vocaloid_avatar"]
-        #     cover: str = __o["cover"]
-        #     cover_avatar: str = __o["cover_avatar"]
-        #
-        # self.vocals = Vocals
-
         class Mv:
             __o = o["mv"]
             available: bool = __o["available"]
@@ -120,7 +111,6 @@ class SongData:
             easy: int = __o["easy"]
             normal: int = __o["normal"]
             hard: int = __o["hard"]
-            # expert: int = __o["expert"]
             master: int = __o["master"]
 
         self.difficulty = Difficulty
@@ -206,12 +196,11 @@ def save_song_data(data: SongData):
         "bpm_crotchet": data.bpm_crotchet,
         "bpm_semiquaver": data.bpm_semiquaver,
         "bpm_semihemiquaver": data.bpm_semihemiquaver,
-        "vocals": {
-            "vocaloid": data.vocals.vocaloid,
-            "vocaloid_avatar": data.vocals.vocaloid_avatar,
-            "cover": data.vocals.cover,
-            "cover_avatar": data.vocals.cover_avatar,
-        },
+        "vocals": data.vocals,
+        "vocals_en": data.vocals_en,
+        "vocals_avatar": data.vocals_avatar,
+        "mapper": data.mapper,
+        "mapper_avatar": data.mapper_avatar,
         "mv": {
             "available": data.mv.available,
             "frames_path": data.mv.frames_path,
@@ -240,6 +229,6 @@ def save_song_data(data: SongData):
         "map_master": beatmap_to_dict(data.map_master),
     }
 
-    print(green(f"{Conf.ROOT_DIR}/beatmaps/{data.name}/meta.toml"))
-    with open(f"{Conf.ROOT_DIR}/beatmaps/{data.name}/meta.toml", "w") as f:
+    # print(green(f"{Conf.ROOT_DIR}/beatmaps/{data.name}/meta.toml"))
+    with open(f"{Conf.ROOT_DIR}/beatmaps/{data.image_name}/meta.toml", "w") as f:
         toml.dump(d, f)
