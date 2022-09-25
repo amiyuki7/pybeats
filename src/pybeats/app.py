@@ -634,7 +634,7 @@ class App:
 
             self.cursor_rect = self.cursor.get_rect(center=pg.mouse.get_pos())
 
-            if type(self._state) is not InGame:
+            if type(self._state) is not InGame and type(self._state) is not Loading:
                 self.Display.blit(self.cursor, self.cursor_rect)
 
             pg.display.update()
