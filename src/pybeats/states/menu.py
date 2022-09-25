@@ -12,6 +12,7 @@ from pygame.surface import Surface
 
 from pybeats import ROOT_DIR
 from ..app import State
+from ..conf import Conf
 
 
 class Menu(State):
@@ -38,13 +39,17 @@ class Menu(State):
         self.title_rect.y = self.ctx.SCREEN_HEIGHT // 6
 
         font_scale = 10
-        self.font = font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", self.ctx.SCREEN_HEIGHT // font_scale)
+        self.font = (
+            Conf.text == Conf.JP
+            and font.Font(f"{ROOT_DIR}/fonts/KozGoPro-Light.otf", self.ctx.SCREEN_HEIGHT // font_scale)
+            or font.Font(f"{ROOT_DIR}/fonts/Mylodon-Light.otf", self.ctx.SCREEN_HEIGHT // font_scale)
+        )
 
-        self.play_text = self.font.render("    Play    ", True, (120, 120, 120))
+        self.play_text = self.font.render(Conf.text.play, True, (120, 120, 120))
         self.play_rect = self.play_text.get_rect(center=self.ctx.Display.get_rect().center)
         self.play_rect.y = self.ctx.SCREEN_HEIGHT // 6 * 3
 
-        self.options_text = self.font.render("  Options  ", True, (120, 120, 120))
+        self.options_text = self.font.render(Conf.text.settings, True, (120, 120, 120))
         self.options_rect = self.options_text.get_rect(center=self.ctx.Display.get_rect().center)
         self.options_rect.y = self.ctx.SCREEN_HEIGHT // 6 * 4
 
@@ -80,19 +85,27 @@ class Menu(State):
                     x,
                     y,
                 ) if self.play_rect.left < x < self.play_rect.right and self.play_rect.top < y < self.play_rect.bottom:
-                    self.play_text = self.font.render(">>>   Play   <<<", True, (255, 255, 255))
+                    self.play_text = self.font.render(
+                        Conf.text == Conf.JP and f"»   {Conf.text.play}   «" or f">>>    {Conf.text.play}    <<<",
+                        True,
+                        (255, 255, 255),
+                    )
                     self.hover_play = True
                     self.hover_options = False
                 case (
                     x,
                     y,
                 ) if self.options_rect.left < x < self.options_rect.right and self.options_rect.top < y < self.options_rect.bottom:
-                    self.options_text = self.font.render(">>> Options <<<", True, (255, 255, 255))
+                    self.options_text = self.font.render(
+                        Conf.text == Conf.JP and f"»     {Conf.text.settings}     «" or f">>> {Conf.text.settings} <<<",
+                        True,
+                        (255, 255, 255),
+                    )
                     self.hover_options = True
                     self.hover_play = False
                 case _:
-                    self.play_text = self.font.render("    Play    ", True, (150, 150, 150))
-                    self.options_text = self.font.render("  Options  ", True, (150, 150, 150))
+                    self.play_text = self.font.render(Conf.text.play, True, (150, 150, 150))
+                    self.options_text = self.font.render(Conf.text.settings, True, (150, 150, 150))
                     self.hover_play = False
                     self.hover_options = False
 

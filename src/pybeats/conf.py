@@ -40,12 +40,16 @@ class Conf:
     # LANGUAGE: Literal["JP", "EN"] = "EN"
 
     class JP:
+        play = "プレー"
+        settings = "設定"
         song_name = "【曲名】"
         prod = "【作曲】"
         vocals = "【歌】"
         mapper = "【ビートマップ】"
 
     class EN:
+        play = "Play"
+        settings = "Settings"
         song_name = "Song Name: "
         prod = "Music By: "
         vocals = "Vocals: "
