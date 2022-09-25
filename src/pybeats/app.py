@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 import sys
+import requests
+from io import BytesIO
 from abc import ABC, abstractmethod
 from math import floor
 from threading import Thread
@@ -340,6 +342,7 @@ class App:
         "assets/back_icon.jpg",
         "assets/diff_arrow.jpg",
         "assets/info_pad.jpg",
+        "assets/empty_avatar.jpg",
     ]
 
     maps: List[Video]
@@ -448,15 +451,44 @@ class App:
             next_song = self.song_names[next_item]
             self.song_cache[next_song] = fetch_song_data(next_song)
 
-        elif (next_item := len(self.image_cache)) < len(self.image_paths):
-            next_image = self.image_paths[next_item]
+            if self.song_cache[next_song].mapper_avatar == "!":
+                # Fetch it from github
+                try:
+                    url = f"https://github.com/{self.song_cache[next_song].mapper}.png?size=400"
+                    response = requests.get(url)
+
+                    if response.ok:
+                        # Mapper name is a github account
+                        self.image_cache[
+                            f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                        ] = pg.image.load(BytesIO(response.content)).convert()
+                    else:
+                        # Mapper name isn't a real github account
+                        self.image_cache[
+                            f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                        ] = pg.image.load(f"{ROOT_DIR}/assets/empty_avatar.jpg").convert()
+                except requests.exceptions.ConnectionError:
+                    # Make it an empty avatar if the user has no wifi
+                    self.image_cache[
+                        f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                    ] = pg.image.load(f"{ROOT_DIR}/assets/empty_avatar.jpg").convert()
+            else:
+                # An image has already been provided
+                self.image_cache[
+                    f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                ] = pg.image.load(
+                    f"{ROOT_DIR}/beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                )
+
+        elif (next_item := len(self.image_cache)) < len(self.image_paths) + len(self.song_names):
+            next_image = self.image_paths[next_item - len(self.song_names)]
 
             img = pg.image.load(f"{ROOT_DIR}/{next_image}").convert()
 
             self.image_cache[next_image] = img
 
         curr_progress = len(self.song_cache) + len(self.image_cache)
-        total_progress = len(self.song_names) + len(self.image_paths)
+        total_progress = len(self.song_names) + len(self.image_paths) + len(self.song_names)
 
         return (curr_progress, total_progress)
 
