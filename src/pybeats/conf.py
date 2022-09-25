@@ -36,3 +36,19 @@ class Conf:
         "lane6": "l",
         "lane7": ";",
     }
+
+    # LANGUAGE: Literal["JP", "EN"] = "EN"
+
+    class JP:
+        song_name = "【曲名】"
+        prod = "【作曲】"
+        vocals = "【歌】"
+        mapper = "【ビートマップ】"
+
+    class EN:
+        song_name = "Song Name: "
+        prod = "Music By: "
+        vocals = "Vocals: "
+        mapper = "Mapped By: "
+
+    text = JP

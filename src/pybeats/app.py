@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import os
 import sys
+import requests
+from io import BytesIO
 from abc import ABC, abstractmethod
-from threading import Thread
 from math import floor
+from threading import Thread
 from typing import Dict, List, Literal, Optional, Tuple, Type
 
 import pygame as pg
@@ -12,7 +14,7 @@ from pygame import font, mixer
 from pygame.surface import Surface
 
 from .conf import Conf
-from .lib import Difficulty, NoteData, SongData, fetch_song_data, panic, save_song_data, screen_res, green, red
+from .lib import Difficulty, NoteData, SongData, fetch_song_data, green, panic, red, save_song_data, screen_res
 
 pg.init()
 
@@ -320,7 +322,7 @@ class App:
     song_cache: Dict[str, SongData] = {}
     image_cache: Dict[str, Surface] = {}
 
-    song_names = ["ド屑", "ゴーストルール"]
+    song_names = ["dokuzu", "ghostrule"]
 
     image_paths = [
         "assets/menu_tint.jpg",
@@ -340,12 +342,7 @@ class App:
         "assets/back_icon.jpg",
         "assets/diff_arrow.jpg",
         "assets/info_pad.jpg",
-        "beatmaps/ド屑/images/cover_avatar.jpg",
-        "beatmaps/ド屑/images/lite.jpg",
-        "beatmaps/ド屑/images/vocaloid_avatar.jpg",
-        "beatmaps/ゴーストルール/images/cover_avatar.jpg",
-        "beatmaps/ゴーストルール/images/lite.jpg",
-        "beatmaps/ゴーストルール/images/vocaloid_avatar.jpg",
+        "assets/empty_avatar.jpg",
     ]
 
     maps: List[Video]
@@ -354,6 +351,26 @@ class App:
     conductor: Optional[Conductor] = None
 
     def __init__(self, init_state: Type[State]) -> None:
+        # Beatmap specific assets
+        for beatmap in os.scandir(f"{ROOT_DIR}/beatmaps/"):
+            print(beatmap.name)
+            if beatmap.is_dir():
+                if os.path.exists(f"beatmaps/{beatmap.name}/images/mapper_avatar.jpg"):
+                    self.image_paths.extend(
+                        (
+                            f"beatmaps/{beatmap.name}/images/lite.jpg",
+                            f"beatmaps/{beatmap.name}/images/vocals_avatar.jpg",
+                            f"beatmaps/{beatmap.name}/images/mapper_avatar.jpg",
+                        )
+                    )
+                else:
+                    self.image_paths.extend(
+                        (
+                            f"beatmaps/{beatmap.name}/images/lite.jpg",
+                            f"beatmaps/{beatmap.name}/images/vocals_avatar.jpg",
+                        )
+                    )
+        #
         self.dt = 1
         self.HoldChannel = mixer.Channel(1)
         self.HoldHeadChannel = mixer.Channel(2)
@@ -434,15 +451,44 @@ class App:
             next_song = self.song_names[next_item]
             self.song_cache[next_song] = fetch_song_data(next_song)
 
-        elif (next_item := len(self.image_cache)) < len(self.image_paths):
-            next_image = self.image_paths[next_item]
+            if self.song_cache[next_song].mapper_avatar == "!":
+                # Fetch it from github
+                try:
+                    url = f"https://github.com/{self.song_cache[next_song].mapper}.png?size=400"
+                    response = requests.get(url)
+
+                    if response.ok:
+                        # Mapper name is a github account
+                        self.image_cache[
+                            f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                        ] = pg.image.load(BytesIO(response.content)).convert()
+                    else:
+                        # Mapper name isn't a real github account
+                        self.image_cache[
+                            f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                        ] = pg.image.load(f"{ROOT_DIR}/assets/empty_avatar.jpg").convert()
+                except requests.exceptions.ConnectionError:
+                    # Make it an empty avatar if the user has no wifi
+                    self.image_cache[
+                        f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                    ] = pg.image.load(f"{ROOT_DIR}/assets/empty_avatar.jpg").convert()
+            else:
+                # An image has already been provided
+                self.image_cache[
+                    f"beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                ] = pg.image.load(
+                    f"{ROOT_DIR}/beatmaps/{self.song_cache[next_song].image_name}/images/mapper_avatar.jpg"
+                )
+
+        elif (next_item := len(self.image_cache)) < len(self.image_paths) + len(self.song_names):
+            next_image = self.image_paths[next_item - len(self.song_names)]
 
             img = pg.image.load(f"{ROOT_DIR}/{next_image}").convert()
 
             self.image_cache[next_image] = img
 
         curr_progress = len(self.song_cache) + len(self.image_cache)
-        total_progress = len(self.song_names) + len(self.image_paths)
+        total_progress = len(self.song_names) + len(self.image_paths) + len(self.song_names)
 
         return (curr_progress, total_progress)
 
@@ -573,7 +619,7 @@ class App:
                         self.conductor = Conductor(
                             self,
                             self._state.song_ref.bpm_semiquaver,
-                            self._state.song_ref.name,
+                            self._state.song_ref.image_name,
                             notes,
                             self._state.difficulty,
                         )
@@ -620,7 +666,7 @@ class App:
 
             self.cursor_rect = self.cursor.get_rect(center=pg.mouse.get_pos())
 
-            if type(self._state) is not InGame:
+            if type(self._state) is not InGame and type(self._state) is not Loading:
                 self.Display.blit(self.cursor, self.cursor_rect)
 
             pg.display.update()
