@@ -422,7 +422,7 @@ class SongSelect(State):
 
     def animate_info(self) -> None:
         if self.phase_info:
-            if self.info_overlay.get_alpha() >= 200:  # type: ignore
+            if self.info_overlay.get_alpha() >= 220:  # type: ignore
                 self.phase_info = False
                 self.showing_info = True
                 return
@@ -437,9 +437,9 @@ class SongSelect(State):
                 return
 
         if self.phase_info:
-            self.info_overlay.set_alpha(self.info_overlay.get_alpha() + 10)  # type: ignore
+            self.info_overlay.set_alpha(self.info_overlay.get_alpha() + 11)  # type: ignore
         elif self.unphase_info:
-            self.info_overlay.set_alpha(self.info_overlay.get_alpha() - 10)  # type: ignore
+            self.info_overlay.set_alpha(self.info_overlay.get_alpha() - 11)  # type: ignore
 
         self.info_pad = self.ctx.image_cache["assets/info_pad.jpg"]
         scale = self.ctx.SCREEN_WIDTH * self.pad_zoom_scale / self.info_pad.get_width()
