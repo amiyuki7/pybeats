@@ -739,6 +739,8 @@ class InGame(State):
                 diamond = "CL"
 
             self.ctx.save_songstate(self.ctx.song_cache[self.ctx.conductor.song], diamond, self.rank)
+            # For redirection
+            self.ctx.target_map = self.ctx.conductor.song
             self.done = True
 
     def draw(self) -> None:

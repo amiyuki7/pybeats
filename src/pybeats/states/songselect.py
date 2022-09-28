@@ -27,11 +27,11 @@ class SongSelect(State):
     def __init__(self, ctx: App) -> None:
         super().__init__(ctx)
 
-        # 0 => ド屑
-        # 1 => ゴーストルール
-        # などなど
-        self.song_idx = random.randint(0, len(self.ctx.song_cache) - 1)
-        self.song_ref = self.ctx.song_cache[self.ctx.song_names[self.song_idx]]
+        if self.ctx.target_map:
+            self.song_ref = self.ctx.song_cache[self.ctx.target_map]
+        else:
+            self.song_idx = random.randint(0, len(self.ctx.song_cache) - 1)
+            self.song_ref = self.ctx.song_cache[self.ctx.song_names[self.song_idx]]
 
         self.bg: Surface = self.ctx.image_cache["assets/menu_tint.jpg"]
         self.bg = pg.transform.scale(self.bg, (self.ctx.SCREEN_WIDTH, self.ctx.SCREEN_HEIGHT)).convert_alpha()

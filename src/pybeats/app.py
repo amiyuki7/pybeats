@@ -430,6 +430,8 @@ class App:
         self.lanes_state: List[bool] = [False for _ in range(8)]
         self.key_down: bool = False
 
+        self.target_map: str = ""
+
     def setState(self, state: Type[State]) -> None:
         self._state = state(self)
 
